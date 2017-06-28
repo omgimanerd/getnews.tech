@@ -1,0 +1,35 @@
+{
+  "name": "getnews.tech",
+  "version": "1.0.0",
+  "description": "A web server that fetches data from the New York Times and formats it for display in the terminal.",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omgimanerd/getnews.tech.git"
+  },
+  "author": "Alvin Lin (alvin.lin.dev@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/omgimanerd/getnews.tech/issues"
+  },
+  "homepage": "https://github.com/omgimanerd/getnews.tech#readme",
+  "dependencies": {
+    "async": "^1.5.2",
+    "bower": "^1.8.0",
+    "cli-table2": "^0.2.0",
+    "colors": "^1.1.2",
+    "email-alerts": "^2.2.3",
+    "express": "^4.14.0",
+    "morgan": "^1.7.0",
+    "pug": "^2.0.0-beta6",
+    "request": "^2.79.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-gjslint": "^0.1.5",
+    "merge-stream": "^1.0.1"
+  }
+}

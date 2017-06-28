@@ -1,0 +1,12 @@
+{
+  "GULPFILE_VERSION": "3.2.1",
+  "DEFAULT_TASKS": ["js-lint"],
+  "JS_LINT_RULES": [
+    {
+      "name": "server side javascript",
+      "sourceFiles": [
+        "./lib/**/*.js"
+      ]
+    }
+  ]
+}

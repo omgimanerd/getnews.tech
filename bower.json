@@ -1,0 +1,26 @@
+{
+  "name": "getnews.tech",
+  "description": "A web server that fetches data from the New York Times and formats it for display in the terminal.",
+  "main": "server.js",
+  "authors": [
+    "Alvin Lin (alvin@omgimanerd.tech)"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/omgimanerd/getnews.tech",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/bower",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ubuntu-font": "*",
+    "jquery": "^3.1.1",
+    "chartist": "^0.11.0",
+    "moment": "^2.18.1"
+  }
+}
