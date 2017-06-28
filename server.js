@@ -6,6 +6,8 @@
 // Constants
 const DEV_MODE = process.argv.includes('--dev');
 const PORT = process.env.PORT || 5000;
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
+const URL_SHORTENER_API_KEY = process.env.URL_SHORTENER_API_KEY;
 
 const LOG_FILE = 'logs/server.log';
 const ANALYTICS_FILE = 'logs/analytics.log';
@@ -30,8 +32,8 @@ const DataFormatter = require('./lib/DataFormatter')
 
 var analytics = Analytics.create(analyticsFile);
 var apiAccessor = ApiAccessor.create({
-  nytimes_api_key: process.env.NYTIMES_API_KEY,
-  url_shortener_api_key: process.env.URL_SHORTENER_API_KEY
+  news_api_key: NEWS_API_KEY,
+  url_shortener_api_key: URL_SHORTENER_API_KEY
 });
 var app = express();
 if (!DEV_MODE) {
@@ -39,7 +41,7 @@ if (!DEV_MODE) {
     fromEmail: process.env.ALERT_SENDER_EMAIL,
     toEmail: process.env.ALERT_RECEIVER_EMAIL,
     apiKey: process.env.SENDGRID_API_KEY,
-    subject: 'Error - nycurl'
+    subject: 'Error - getnews.tech'
   });
 }
 var server = http.Server(app);
@@ -95,13 +97,12 @@ app.get('/help', function(request, response) {
   }
 });
 
-app.get('/:section?', function(request, response, next) {
-  var section = request.params.section || 'home';
-  if (!ApiAccessor.isValidSection(section)) {
-    return next();
-  }
+app.get('/:source?', function(request, response, next) {
+  // TODO: default to showing source types
+  var source = request.params.source || 'the-next-web';
   var callback = function(error, results) {
     if (error) {
+      console.log(error);
       if (request['isCurl']) {
         response.status(500).send(
             'An error occurred. Please try again later. '.red +
@@ -117,7 +118,7 @@ app.get('/:section?', function(request, response, next) {
         response.send(DataFormatter.format(results, request.query));
       } else {
         response.render('index', {
-          header: `nycurl.sytes.net/${section}`,
+          header: `getnews.tech/${section}`,
           listSections: false,
           data: results
         });
@@ -125,9 +126,9 @@ app.get('/:section?', function(request, response, next) {
     }
   };
   if (!DEV_MODE) {
-    apiAccessor.fetch(section, alert.errorHandler(callback));
+    apiAccessor.fetch(source, alert.errorHandler(callback));
   } else {
-    apiAccessor.fetch(section, callback);
+    apiAccessor.fetch(source, callback);
   }
 });
 
@@ -160,10 +161,10 @@ server.listen(PORT, function() {
   if (DEV_MODE) {
     console.log('DEV_MODE ENABLED!');
   }
-  if (!process.env.NYTIMES_API_KEY) {
+  if (!NEWS_API_KEY) {
     throw new Error('No NYTimes API key specified.');
   }
-  if (!process.env.URL_SHORTENER_API_KEY) {
+  if (!URL_SHORTENER_API_KEY) {
     throw new Error('No URL shortener API key specified.');
   }
   if (!DEV_MODE && !process.env.SENDGRID_API_KEY) {

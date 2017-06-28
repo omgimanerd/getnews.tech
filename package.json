@@ -1,31 +1,21 @@
 {
   "name": "getnews.tech",
   "version": "1.0.0",
-  "description": "A web server that fetches data from the New York Times and formats it for display in the terminal.",
+  "description": "A web server that fetches data from the News API and formats it for display in the terminal.",
   "main": "server.js",
-  "scripts": {
-    "test": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/omgimanerd/getnews.tech.git"
-  },
-  "author": "Alvin Lin (alvin.lin.dev@gmail.com)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/omgimanerd/getnews.tech/issues"
-  },
-  "homepage": "https://github.com/omgimanerd/getnews.tech#readme",
+  "repository": "git@github.com:omgimanerd/getnews.tech",
+  "author": "omgimanerd <alvin@omgimanerd.tech>",
+  "license": "Apache-2.0",
   "dependencies": {
-    "async": "^1.5.2",
-    "bower": "^1.8.0",
+    "async": "^2.5.0",
     "cli-table2": "^0.2.0",
     "colors": "^1.1.2",
     "email-alerts": "^2.2.3",
-    "express": "^4.14.0",
-    "morgan": "^1.7.0",
-    "pug": "^2.0.0-beta6",
-    "request": "^2.79.0"
+    "express": "^4.15.3",
+    "morgan": "^1.8.2",
+    "pug": "^2.0.0-rc.2",
+    "request": "^2.81.0",
+    "ubuntu-fontface": "^0.1.13"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
