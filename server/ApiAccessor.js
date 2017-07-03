@@ -24,7 +24,13 @@ function ApiAccessor(news_api_key, url_shortener_api_key) {
  * @const
  * @type {string}
  */
-ApiAccessor.NEWS_API_BASE_URL = 'https://newsapi.org/v1/articles';
+ApiAccessor.ARTICLES_BASE_URL = 'https://newsapi.org/v1/articles';
+
+/**
+ * @const
+ * @type {string}
+ */
+ApiAccessor.SOURCES_BASE_URL = 'https://newsapi.org/v1/sources';
 
 /**
  * @const
@@ -101,7 +107,7 @@ ApiAccessor.prototype.shortenUrl = function(url, callback) {
 ApiAccessor.prototype.fetchArticles = function(source, callback) {
   var context = this;
   request({
-    url: ApiAccessor.NEWS_API_BASE_URL,
+    url: ApiAccessor.ARTICLES_BASE_URL,
     qs: {
       'source': source,
       'apiKey': context.news_api_key
@@ -111,13 +117,38 @@ ApiAccessor.prototype.fetchArticles = function(source, callback) {
     if (error) {
       return callback(error);
     } else if (response.statusCode === 401) {
-      return callback('API key error. Authorization failed.');
+      return callback('News API key error. Authorization failed.');
     } else if (!body || !body.articles) {
-      return callback('An error occurred! No results were returned!');
+      return callback('No results were returned from the News API!');
     } else {
       return callback(null, body.articles);
     }
   });
+};
+
+/**
+ * This method fetches article sources from the News API and passes it to
+ * a callback. Any errors will be passed to the callback as well.
+ * @param {Object} options Options for customizing the request
+ * @param {function()} callback The callback function to which the sources
+ *   are passed, along with any errors.
+ * @return {function()}
+ */
+ApiAccessor.prototype.fetchSources = function(options, callback) {
+  var context = this;
+  request({
+    url: ApiAccessor.SOURCES_BASE_URL,
+    qs: {},
+    json: true
+  }, function(error, response, body) {
+    if (error) {
+      return callback(error);
+    } else if (!body || !body.sources) {
+      return callback('No sources were returned from the News API!');
+    } else {
+      return callback(null, body.sources);
+    }
+  })
 };
 
 /**
@@ -126,7 +157,7 @@ ApiAccessor.prototype.fetchArticles = function(source, callback) {
  * @param {string} source The News API source to query.
  * @param {function()} callback The callback function to which the articles are
  *   passed, along with any errors.
- * @return {?function()}
+ * @return {function()}
  */
 ApiAccessor.prototype.fetch = function(source, callback) {
   /**

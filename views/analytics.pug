@@ -4,18 +4,26 @@ html
   head
     title NY Curl Analytics
     link(rel="icon" type="image/x-icon" href="/public/favicon.ico")
-    link(rel="stylesheet" href="/public/css/analytics.css")
-    link(rel="stylesheet" href="/public/bower/chartist/dist/chartist.min.css")
 
     meta(name="description"
          content="News from the New York Times optimized for display in Terminal")
 
   body
     h3(class="header") Analytics
+      br
+      a(href="/") Home
+    div(class='date-slider-container')
+      h4(class='header') Set Time Scale
+      div(id='date-slider')
     div(class="container")
-      div(class="ct-chart traffic")
+      div(class="graphs")
+        h4 Traffic Over Time (hits per day)
+        div(class="ct-chart traffic")
+      div(class="graphs")
+        h4 Average Response Time (max/avg/min milliseconds)
+        div(class="ct-chart response-time")
+      div(class="graphs")
+        h4 Section Query Frequencies (total queries per section)
+        div(class="ct-chart section-freq")
 
-  script(src="/public/bower/chartist/dist/chartist.min.js")
-  script(src="/public/bower/jquery/dist/jquery.min.js")
-  script(src="/public/bower/moment/min/moment.min.js")
-  script(src="/public/js/analytics.js")
+  script(src="/dist/analytics.bundle.js")

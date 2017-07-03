@@ -8,14 +8,24 @@
   "license": "Apache-2.0",
   "dependencies": {
     "async": "^2.5.0",
+    "chartist": "^0.11.0",
     "cli-table2": "^0.2.0",
     "colors": "^1.1.2",
+    "css-loader": "^0.28.4",
     "email-alerts": "^2.2.3",
     "express": "^4.15.3",
+    "file-loader": "^0.11.2",
+    "jquery": "^3.2.1",
+    "moment": "^2.18.1",
     "morgan": "^1.8.2",
+    "node-sass": "^4.5.3",
+    "nouislider": "^10.0.0",
     "pug": "^2.0.0-rc.2",
     "request": "^2.81.0",
-    "ubuntu-fontface": "^0.1.13"
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.18.2",
+    "ubuntu-fontface": "^0.1.13",
+    "webpack": "^3.0.0"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

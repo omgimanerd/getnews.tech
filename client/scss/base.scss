@@ -1,0 +1,35 @@
+/**
+ * Base stylesheet
+ * Author: alvin@omgimanerd.tech (Alvin Lin)
+ */
+
+$BACKGROUND: #212121;
+$ANSI_LIGHT_GREEN: #88e234;
+$ANSI_DARK_GREEN: #4E9A06;
+$ANSI_DARK_BLUE: #295183;
+$ANSI_DARK_CYAN: #026D7B;
+$ANSI_CYAN: #29B5B5;
+$ANSI_RED: #CC0219;
+
+html, body {
+  width: 100%;
+  min-width: 800px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+
+  font-size: 16px;
+  font-family: "Ubuntu Monospace", monospace, sans-serif;
+  background-color: $BACKGROUND;
+  color: #FFFFFF;
+}
+
+a, a:visited {
+  color: $ANSI_DARK_GREEN;
+  border-bottom: 1px solid $ANSI_DARK_GREEN;
+  text-decoration: none;
+}
+
+a:hover {
+  border-bottom: 2px solid $ANSI_DARK_GREEN;
+}

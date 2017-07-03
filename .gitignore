@@ -1,4 +1,4 @@
+/dist
 /node_modules
-/public/bower
 *.log
 setup

@@ -23,6 +23,12 @@ DataFormatter.DEFAULT_DISPLAY_WIDTH = 72;
 
 /**
  * @const
+ * @type {number}
+ */
+DataFormatter.WIDTH_WARNING_THRESHOLD = 70;
+
+/**
+ * @const
  * @type {string}
  */
 DataFormatter.HELP = '\nTo find a list of sources to query, use: ' +
@@ -77,6 +83,69 @@ DataFormatter.formatTextWrap = function(text, maxLineLength) {
   return output;
 };
 
+DataFormatter.formatHelp = function() {
+
+}
+
+DataFormatter.formatSources = function(sources, options) {
+  var maxWidth = parseInt(options['w'] || options['width']);
+  if (isNaN(maxWidth) || maxWidth <= 0) {
+    maxWidth = DataFormatter.DEFAULT_DISPLAY_WIDTH;
+  }
+
+  /**
+   * We first calculate the maximum width for the column containing the
+   * source IDs, adding two to account for cell padding.
+   */
+  var maxIdWidth = Math.max.apply(null, sources.map((source) =>
+      source.id.length).concat('Source'.length)) + 2;
+  /**
+   * The remaining space is then allocated to the description, subtracting
+   * 3 to account for the table borders.
+   */
+  var descriptionWidth = maxWidth - maxIdWidth - 3;
+  var table = new Table({
+    colWidths: [maxIdWidth, descriptionWidth]
+  });
+  if (options.warning) {
+    // TODO: warning message
+  }
+  table.push(
+    [{
+      content: 'Source'.bold.red,
+      hAlign: 'center'
+    }, {
+      content: 'Description'.red.bold,
+      hAlign: 'center'
+    }]
+  );
+  for (var source of sources) {
+    var id = source.id.green;
+    /**
+    * We subtract 2 when calculating the space formatting for the text to
+    * account for the padding at the edges of the table.
+    */
+    var name = DataFormatter.formatTextWrap(
+        source.name, descriptionWidth - 2).bold.cyan;
+    var description = DataFormatter.formatTextWrap(
+        source.description, descriptionWidth - 2);
+    var url = new String(source.url).underline.green;
+    table.push([
+      new String(source.id).green,
+      [name, description, url].join('\n')
+    ]);
+  }
+  if (maxWidth < DataFormatter.WIDTH_WARNING_THRESHOLD) {
+    table.push([{
+      colSpan: 2,
+      content: DataFormatter.formatTextWrap(
+          DataFormatter.WARNING, maxWidth).red,
+      hAlign: 'center'
+    }]);
+  }
+  return table.toString() + '\n';
+};
+
 /**
  * This function takes the array of article results returned from the News API
  * and formats it into a table for display in your terminal.
@@ -92,10 +161,14 @@ DataFormatter.formatTextWrap = function(text, maxLineLength) {
  *   - width (width, defaults to DEFAULT_DISPLAY_WIDTH)
  * @return {string}
  */
-DataFormatter.format = function(data, options) {
+DataFormatter.formatArticles = function(data, options) {
   var maxWidth = parseInt(options['w'] || options['width']);
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DataFormatter.DEFAULT_DISPLAY_WIDTH;
+  }
+  var index = parseInt(options['i'] || options['index']);
+  if (isNaN(index) || index < 0) {
+    index = 0;
   }
   var number = parseInt(options['n'] || options['number']);
   if (isNaN(number) || number <= 0) {
@@ -104,8 +177,7 @@ DataFormatter.format = function(data, options) {
 
   var articles = data.sort(function(a, b) {
     return a.title.localeCompare(b.section);
-  }).slice(0, number);
-
+  }).slice(index, index + number);
   var table = new Table();
   table.push(
     [{
@@ -137,12 +209,15 @@ DataFormatter.format = function(data, options) {
         DataFormatter.GITHUB_TEXT +
         DataFormatter.GITHUB_LINK
   }]);
-  if (maxWidth < 60) {
-    table.push([
-      DataFormatter.formatTextWrap(DataFormatter.WARNING, maxWidth).red
-    ]);
+  if (maxWidth < DataFormatter.WIDTH_WARNING_THRESHOLD) {
+    table.push([{
+      colSpan: 2,
+      content: DataFormatter.formatTextWrap(
+          DataFormatter.WARNING, maxWidth).red,
+      hAlign: 'center'
+    }]);
   }
-  return table.toString() + '\n\n';
+  return table.toString() + '\n';
 };
 
 /**
