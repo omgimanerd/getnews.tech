@@ -34,6 +34,12 @@ ApiAccessor.SOURCES_BASE_URL = 'https://newsapi.org/v1/sources';
 
 /**
  * @const
+ * @type {string}
+ */
+ApiAccessor.BAD_SOURCE = 'sourceDoesntExist';
+
+/**
+ * @const
  * @type {type}
  */
 ApiAccessor.URL_SHORTENER_BASE_URL =
@@ -118,7 +124,9 @@ ApiAccessor.prototype.fetchArticles = function(source, callback) {
       return callback(error);
     } else if (response.statusCode === 401) {
       return callback('News API key error. Authorization failed.');
-    } else if (!body || !body.articles) {
+    } else if (!body || body.code === ApiAccessor.BAD_SOURCE) {
+      return callback(body.code);
+    } else if (!body.articles) {
       return callback('No results were returned from the News API!');
     } else {
       return callback(null, body.articles);
@@ -135,6 +143,7 @@ ApiAccessor.prototype.fetchArticles = function(source, callback) {
  * @return {function()}
  */
 ApiAccessor.prototype.fetchSources = function(options, callback) {
+
   var context = this;
   request({
     url: ApiAccessor.SOURCES_BASE_URL,

@@ -12,7 +12,8 @@ module.exports = {
   },
   output: {
     filename: '[name].bundle.js',
-    path: path.join(__dirname, '/dist')
+    path: path.join(__dirname, 'dist'),
+    publicPath: '/dist/'
   },
   module: {
     rules: [
@@ -38,8 +39,14 @@ module.exports = {
       },
       {
         test: /\.(ttf|woff|woff2|svg|eot)$/,
-        use: 'file-loader'
+        use: {
+          loader: 'file-loader',
+          options: {
+            name: '[name].[ext]'
+          }
+        }
       }
     ]
-  }
+  },
+  devtool: 'cheap-eval-source-map'
 }

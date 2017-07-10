@@ -84,8 +84,9 @@ DataFormatter.formatTextWrap = function(text, maxLineLength) {
 };
 
 DataFormatter.formatHelp = function() {
-
-}
+  var table = new Table();
+  return table.toString();
+};
 
 DataFormatter.formatSources = function(sources, options) {
   var maxWidth = parseInt(options['w'] || options['width']);
@@ -195,7 +196,7 @@ DataFormatter.formatArticles = function(data, options) {
      * account for the table border and padding.
      */
     var title = DataFormatter.formatTextWrap(
-        article.title, maxWidth - 4).bold.underline.cyan;
+        article.title, maxWidth - 4).bold.cyan;
     var description = DataFormatter.formatTextWrap(
         article.description, maxWidth - 4);
     var url = new String(article.url).underline.green;

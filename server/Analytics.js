@@ -5,6 +5,7 @@
  */
 
 const fs = require('fs');
+const geoip = require('geoip-native');
 
 /**
  * Constructor for an Analytics object.
@@ -17,11 +18,11 @@ function Analytics(analyticsFile) {
 }
 
 /**
- * Milliseconds in a day
+ * Milliseconds in an hour.
  * @const
  * @type {number}
  */
-Analytics.CACHE_KEEP_TIME = 86400000;
+Analytics.CACHE_KEEP_TIME = 3600000;
 
 /**
  * Factory method for an Analytics object.
@@ -48,19 +49,23 @@ Analytics.prototype.getAnalytics = function(callback) {
   if (this.cache.analytics && currentTime < this.cache.expires) {
     return callback(null, this.cache.analytics);
   }
+  var context = this;
   fs.readFile(this.analyticsFile, 'utf-8', function(error, data) {
     if (error) {
       return callback(error);
     }
     try {
-      data = data.trim().split('\n').map(JSON.parse).map(function(entry) {
-        entry.date = new Date(entry.date);
+      data = data.trim().split('\n').map(function(entry) {
+        entry = JSON.parse(entry);
+        entry.country = geoip.lookup(entry.ip).name;
         return entry;
       });
+      context.cache.analytics = data;
+      context.cache.expires = currentTime + Analytics.CACHE_KEEP_TIME;
+      return callback(null, data);
     } catch (error) {
       return callback(error);
     }
-    return callback(error, data);
   });
 };
 

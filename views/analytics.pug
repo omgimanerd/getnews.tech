@@ -3,7 +3,7 @@ doctype html
 html
   head
     title NY Curl Analytics
-    link(rel="icon" type="image/x-icon" href="/public/favicon.ico")
+    link(rel="icon" type="image/x-icon" href="/favicon.ico")
 
     meta(name="description"
          content="News from the New York Times optimized for display in Terminal")
@@ -12,18 +12,21 @@ html
     h3(class="header") Analytics
       br
       a(href="/") Home
+    div(class="container")
+      div(class="graphs")
+        h4 Traffic Over Time (requests per day)
+        div(id="traffic" class="graph")
+      div(class="graphs")
+        h4 Average Response Time (max/avg/min milliseconds)
+        div(id="response-time" class="graph")
+      div(class="graphs")
+        h4 Section Query Frequencies (total queries per section)
+        div(id="section-frequency" class="graph")
+      div(class='graphs')
+        h4 Queries by IP Origin (total queries per country)
+        div(id='country-frequency' class='graph')
     div(class='date-slider-container')
       h4(class='header') Set Time Scale
       div(id='date-slider')
-    div(class="container")
-      div(class="graphs")
-        h4 Traffic Over Time (hits per day)
-        div(class="ct-chart traffic")
-      div(class="graphs")
-        h4 Average Response Time (max/avg/min milliseconds)
-        div(class="ct-chart response-time")
-      div(class="graphs")
-        h4 Section Query Frequencies (total queries per section)
-        div(class="ct-chart section-freq")
 
   script(src="/dist/analytics.bundle.js")
