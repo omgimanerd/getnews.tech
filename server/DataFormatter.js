@@ -84,8 +84,49 @@ DataFormatter.formatTextWrap = function(text, maxLineLength) {
 };
 
 DataFormatter.formatHelp = function() {
-  var table = new Table();
-  return table.toString();
+  var table = new Table({
+    head: ['Route'.bold, 'Description'.bold],
+    colWidth: [10, 60]
+  });
+  var routes = ['help', 'sources', '<source>'];
+  var descriptions = {
+    help: [
+      'Show this help page. No options available.\n',
+      'Example Usage:'.red.bold,
+      'curl getnews.tech/help'
+    ],
+    sources: [
+      'Show the available sources to query. Options:\n',
+      'Set source category:',
+      'category='.blue + '[business, entertainment, gaming, general,'.green,
+      'music, politics, science-and-nature, sport, technology]\n'.green,
+      'Set source language:',
+      'language='.blue + '[en, de, fr]\n'.green,
+      'Set source country:',
+      'country='.blue + '[au, de, gb, in, it, us]\n'.green,
+      'Example Usage:'.red.bold,
+      'curl getnews.tech/sources?language=de',
+      'curl getnews.tech/sources?category=business\\&country=us'
+    ],
+    '<source>': [
+      'Query for news from the specified source. Options:\n',
+      'Set output width:',
+      'w='.blue + 'WIDTH\n'.green,
+      'Set article #:',
+      'i='.blue + 'INDEX\n'.green,
+      'Limit number of articles:',
+      'n='.blue + 'NUMBER\n'.green,
+      'Example Usage:'.red.bold,
+      'curl getnews.tech/espn?w=100',
+      'curl getnews.tech/usa-today?i=5\\&n=10'
+    ]
+  };
+  for (var route of routes) {
+    table.push([
+      `/${route}`.cyan.bold, descriptions[route].join('\n')
+    ]);
+  }
+  return table.toString() + '\n';
 };
 
 DataFormatter.formatSources = function(sources, options) {
@@ -93,7 +134,6 @@ DataFormatter.formatSources = function(sources, options) {
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DataFormatter.DEFAULT_DISPLAY_WIDTH;
   }
-
   /**
    * We first calculate the maximum width for the column containing the
    * source IDs, adding two to account for cell padding.
@@ -111,15 +151,13 @@ DataFormatter.formatSources = function(sources, options) {
   if (options.warning) {
     // TODO: warning message
   }
-  table.push(
-    [{
-      content: 'Source'.bold.red,
-      hAlign: 'center'
-    }, {
-      content: 'Description'.red.bold,
-      hAlign: 'center'
-    }]
-  );
+  table.push([{
+    content: 'Source'.bold.red,
+    hAlign: 'center'
+  }, {
+    content: 'Description'.red.bold,
+    hAlign: 'center'
+  }]);
   for (var source of sources) {
     var id = source.id.green;
     /**

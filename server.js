@@ -97,15 +97,16 @@ app.use(function(request, response, next) {
 
 app.get('/help', function(request, response) {
   if (request.isCurl) {
-    response.send(DataFormatter.formatHelp());
+    response.status(201).send(DataFormatter.formatHelp());
   } else {
-    response.send("not yet available");
+    response.status(201).send("not yet available");
   }
 });
 
-app.get('/sources', function(request, response) {
+app.get(/^\/sources$|^\/$/, function(request, response) {
   var callback = function(error, sources) {
     if (error) {
+      console.error(error);
       if (request.isCurl) {
         response.status(500).send(
             'An error occurred. Please try again later. '.red +
@@ -133,10 +134,10 @@ app.get('/sources', function(request, response) {
 });
 
 app.get('/:source?', function(request, response, next) {
-  // TODO: default to showing source types
   var source = request.params.source;
   var callback = function(error, results) {
     if (error) {
+      console.error(error);
       if (request.isCurl) {
         response.status(500).send(
             'An error occurred. Please try again later. '.red +
@@ -160,9 +161,9 @@ app.get('/:source?', function(request, response, next) {
     }
   };
   if (PROD_MODE) {
-    apiAccessor.fetch(source, alert.errorHandler(callback));
+    apiAccessor.fetchArticles(source, alert.errorHandler(callback));
   } else {
-    apiAccessor.fetch(source, callback);
+    apiAccessor.fetchArticles(source, callback);
   }
 });
 

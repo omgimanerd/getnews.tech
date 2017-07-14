@@ -102,39 +102,6 @@ ApiAccessor.prototype.shortenUrl = function(url, callback) {
 };
 
 /**
- * This method fetches article data from the News API and passes it into
- * a callback. It operates under the assumption that the section being passed
- * to it is a valid section to query and that the isValidSection() check has
- * passed. Any errors will be passed to the callback.
- * @param {string} source The News API source to query.
- * @param {function()} callback The callback function to which the articles
- *   are passed, along with any errors.
- */
-ApiAccessor.prototype.fetchArticles = function(source, callback) {
-  var context = this;
-  request({
-    url: ApiAccessor.ARTICLES_BASE_URL,
-    qs: {
-      'source': source,
-      'apiKey': context.news_api_key
-    },
-    json: true
-  }, function(error, response, body) {
-    if (error) {
-      return callback(error);
-    } else if (response.statusCode === 401) {
-      return callback('News API key error. Authorization failed.');
-    } else if (!body || body.code === ApiAccessor.BAD_SOURCE) {
-      return callback(body.code);
-    } else if (!body.articles) {
-      return callback('No results were returned from the News API!');
-    } else {
-      return callback(null, body.articles);
-    }
-  });
-};
-
-/**
  * This method fetches article sources from the News API and passes it to
  * a callback. Any errors will be passed to the callback as well.
  * @param {Object} options Options for customizing the request
@@ -143,11 +110,10 @@ ApiAccessor.prototype.fetchArticles = function(source, callback) {
  * @return {function()}
  */
 ApiAccessor.prototype.fetchSources = function(options, callback) {
-
   var context = this;
   request({
     url: ApiAccessor.SOURCES_BASE_URL,
-    qs: {},
+    qs: options,
     json: true
   }, function(error, response, body) {
     if (error) {
@@ -168,7 +134,7 @@ ApiAccessor.prototype.fetchSources = function(options, callback) {
  *   passed, along with any errors.
  * @return {function()}
  */
-ApiAccessor.prototype.fetch = function(source, callback) {
+ApiAccessor.prototype.fetchArticles = function(source, callback) {
   /**
    * We first check if the query has been cached within the last 10
    * minutes. If it has, then we return the cached data. If not, we then
@@ -192,10 +158,29 @@ ApiAccessor.prototype.fetch = function(source, callback) {
     function(innerCallback) {
       /**
        * This first asynchronous function sends a request to the News
-       * API for the top stories, which we pass to the callback to
+       * API for the articles, which we pass to the callback to
        * the next asynchronous function call.
        */
-      context.fetchArticles(source, innerCallback);
+      request({
+        url: ApiAccessor.ARTICLES_BASE_URL,
+        qs: {
+          'source': source,
+          'apiKey': context.news_api_key
+        },
+        json: true
+      }, function(error, response, body) {
+        if (error) {
+          innerCallback(error);
+        } else if (response.statusCode === 401) {
+          innerCallback('News API key error. Authorization failed.');
+        } else if (!body || body.code === ApiAccessor.BAD_SOURCE) {
+          innerCallback(body.code);
+        } else if (!body.articles) {
+          innerCallback('No results were returned from the News API!');
+        } else {
+          innerCallback(null, body.articles);
+        }
+      });
     }, function(results, innerCallback) {
       /**
        * This inner asynchronous function iterates through
