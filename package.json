@@ -7,19 +7,18 @@
   "author": "omgimanerd <alvin@omgimanerd.tech>",
   "license": "Apache-2.0",
   "dependencies": {
-    "async": "^2.5.0",
     "c3": "^0.4.14",
     "cli-table2": "^0.2.0",
     "colors": "^1.1.2",
     "css-loader": "^0.28.4",
     "d3": "^4.9.1",
     "express": "^4.15.3",
+    "express-winston": "^2.4.0",
     "file-loader": "^0.11.2",
     "fs-extra": "^4.0.0",
     "geoip-native": "^0.0.8",
     "jquery": "^3.2.1",
     "moment": "^2.18.1",
-    "morgan": "^1.8.2",
     "node-sass": "^4.5.3",
     "nouislider": "^10.0.0",
     "pug": "^2.0.0-rc.2",
@@ -28,7 +27,9 @@
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
     "ubuntu-fontface": "^0.1.13",
-    "webpack": "^3.0.0"
+    "webpack": "^3.0.0",
+    "winston": "^2.3.1",
+    "winston-mail": "^1.3.0"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

@@ -40,6 +40,12 @@ const WARNING = 'Warning: Using too small of a width will cause ' +
     'unpredictable behavior!\n';
 
 /**
+ * The error to show when a user queries an invalid source.
+ * @type {string}
+ */
+const INVALID_SOURCE = '\nYou queried an invalid source!\n';
+
+/**
  * This method returns the table footer that is appended to every output
  * Table.
  * @return {Array<Object>}
@@ -80,13 +86,25 @@ const formatTextWrap = (text, maxLineLength) => {
 
 /**
  * This method formats and returns the help text.
+ * @param {boolean} invalidSource Whether or not the invalid source warning.
  * @return {string}
  */
-const formatHelp = () => {
-  var table = new Table({
-    head: ['Route'.bold, 'Description'.bold],
-    colWidth: [10, 60]
-  });
+const formatHelp = (invalidSource) => {
+  var table = new Table({ colWidth: [10, 60] });
+  if (invalidSource) {
+    table.push([{
+      colSpan: 2,
+      content: INVALID_SOURCE.bold.red,
+      hAlign: 'center'
+    }]);
+  }
+  table.push([{
+    content: 'Route'.red.bold,
+    hAlign: 'center'
+  }, {
+    content: 'Description'.red.bold,
+    hAlign: 'center'
+  }]);
   var routes = ['help', 'sources', '<source>'];
   var descriptions = {
     help: [
@@ -140,23 +158,21 @@ const formatSources = (sources, options) => {
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH;
   }
+
   /**
    * We first calculate the maximum width for the column containing the
    * source IDs, adding two to account for cell padding.
    */
-  var maxIdWidth = Math.max.apply(null, sources.map((source) =>
+  const maxIdWidth = Math.max(...sources.map(source =>
       source.id.length).concat('Source'.length)) + 2;
   /**
    * The remaining space is then allocated to the description, subtracting
    * 3 to account for the table borders.
    */
-  var descriptionWidth = maxWidth - maxIdWidth - 3;
+  const descriptionWidth = maxWidth - maxIdWidth - 3;
   var table = new Table({
     colWidths: [maxIdWidth, descriptionWidth]
   });
-  if (options.warning) {
-    // TODO: warning message
-  }
   table.push([{
     content: 'Source'.bold.red,
     hAlign: 'center'
@@ -194,17 +210,14 @@ const formatSources = (sources, options) => {
  * and formats it into a table for display in your terminal.
  * It assumes that the data has the fields outlined in the documentation
  * on the News API developer documentation, and that the url to the article
- * has also been shortened by ApiAccessor.
+ * has also been shortened.
  * https://newsapi.org/#documentation
- * @param {Array<Object>} data The list of results returned by a query to the
- *   News API.
+ * @param {Array<Object>} articles A list of articles returned by a query to
+ *   the News API.
  * @param {?Object=} options A dictionary containing configuration options.
- *   Valid keys are:
- *   - w (width, defaults to DEFAULT_DISPLAY_WIDTH)
- *   - width (width, defaults to DEFAULT_DISPLAY_WIDTH)
  * @return {string}
  */
-const formatArticles = (data, options) => {
+const formatArticles = (articles, options) => {
   var maxWidth = parseInt(options['w'] || options['width']);
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH;
@@ -215,28 +228,40 @@ const formatArticles = (data, options) => {
   }
   var number = parseInt(options['n'] || options['number']);
   if (isNaN(number) || number <= 0) {
-    number = Number.MAX_SAFE_INTEGER;
+    number = articles.length;
   }
 
-  var articles = data.sort((a, b) => {
-    return a.title.localeCompare(b.section);
-  }).slice(index, index + number);
-  var table = new Table();
-  table.push(
-    [{ hAlign: 'center', content: 'Articles'.bold.red }],
-    [{ hAlign: 'center', content: formatTextWrap(HELP, maxWidth).red }]
-  );
+  articles = articles.splice(index, number);
+  /**
+   * We first calculate how wide the column containing the article numbers
+   * will be, adding two to account for the cell padding.
+   */
+  const maxNumbersWidth = (index + number).toString().length + 2;
+  /**
+   * The borders of the table take up 3 characters, so we allocate the rest of
+   * the space to the articles column.
+   */
+  const articlesWidth = maxWidth - maxNumbersWidth - 3;
+  var table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] });
+  table.push([{
+    colSpan: 2,
+    content: HELP.red,
+    hAlign: 'center'
+  }], ['#'.red, 'Article'.red]);
   for (var article of articles) {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
      */
-    var title = formatTextWrap(article.title, maxWidth - 4).bold.cyan;
-    var description = formatTextWrap(article.description, maxWidth - 4);
-    var url = new String(article.url).underline.green;
-    table.push([[title, description, url].join('\n')]);
+    const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan;
+    const description = formatTextWrap(article.description, articlesWidth - 4);
+    const url = new String(article.url).underline.green;
+    table.push([
+      (index++).toString().blue,
+      [title, description, url].join('\n')
+    ]);
   }
-  table.push(getTableFooter(1));
+  table.push(getTableFooter(2));
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,

@@ -24,8 +24,8 @@ const get = file => {
    * First check if we have analytics cached. If not, then we should fetch it
    * again.
    */
-  var currentTime = Date.now();
-  var entry = cache[file];
+  const currentTime = Date.now();
+  const entry = cache[file];
   if (entry && currentTime < entry.expires) {
     return Promise.resolve(entry.analytics);
   }

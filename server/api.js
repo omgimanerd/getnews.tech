@@ -106,9 +106,9 @@ const fetchArticles = source => {
    * minutes. If it has, then we return the cached data. If not, we then
    * fetch new data from the News API.
    */
-  var currentTime = Date.now();
+  const currentTime = Date.now();
   if (cache[source] && currentTime < cache[source].expires) {
-    return callback(null, cache[source].results);
+    return Promise.resolve(cache[source].results);
   }
   /**
    * If the section being requested was not cached, then we need to fetch the
@@ -132,23 +132,27 @@ const fetchArticles = source => {
       });
     }));
   }).then(data => {
+    const results = data.sort((a, b) => {
+      return a.title.localeCompare(b.title);
+    });
     /**
      * We cache the result and then return it in a resolved Promise.
      */
     cache[source] = {
-      results: data,
+      results: results,
       expires: currentTime + CACHE_KEEP_TIME
     };
-    return Promise.resolve(data);
+    return Promise.resolve(results);
   }).catch(error => {
     return Promise.reject({
       message: 'News API article fetching failure',
-      error: error
+      error: error.constructor === Error ? error : error.error
     });
   });
 };
 
 module.exports = exports = {
+  BAD_SOURCE: BAD_SOURCE,
   shortenUrl: shortenUrl,
   fetchSources: fetchSources,
   fetchArticles: fetchArticles
