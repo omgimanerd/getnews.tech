@@ -20,6 +20,12 @@ const DEFAULT_DISPLAY_WIDTH = 72;
 const WIDTH_WARNING_THRESHOLD = 70;
 
 /**
+ * Default error text.
+ * @type {string}
+ */
+const ERROR = 'An error occurred! Please try again later.\n'.red;
+
+/**
  * Default help text.
  * @type {string}
  */
@@ -38,7 +44,7 @@ const WARNING = 'Warning: Using too small of a width will cause ' +
  * Table.
  * @return {Array<Object>}
  */
-const getTableFooter = (colSpan) => {
+const getTableFooter = colSpan => {
   return [{
     colSpan: colSpan,
     content: 'Follow '.green + '@omgimanerd '.blue +
@@ -86,7 +92,7 @@ const formatHelp = () => {
     help: [
       'Show this help page. No options available.\n',
       'Example Usage:'.red.bold,
-      'curl getnews.tech/help'
+      'curl getnews.tech/help'.cyan
     ],
     sources: [
       'Show the available sources to query. Options:\n',
@@ -98,8 +104,8 @@ const formatHelp = () => {
       'Set source country:',
       'country='.blue + '[au, de, gb, in, it, us]\n'.green,
       'Example Usage:'.red.bold,
-      'curl getnews.tech/sources?language=de',
-      'curl getnews.tech/sources?category=business\\&country=us'
+      'curl getnews.tech/sources?language=de'.cyan,
+      'curl getnews.tech/sources?category=business\\&country=us'.cyan
     ],
     '<source>': [
       'Query for news from the specified source. Options:\n',
@@ -110,8 +116,8 @@ const formatHelp = () => {
       'Limit number of articles:',
       'n='.blue + 'NUMBER\n'.green,
       'Example Usage:'.red.bold,
-      'curl getnews.tech/espn?w=100',
-      'curl getnews.tech/usa-today?i=5\\&n=10'
+      'curl getnews.tech/espn?w=100'.cyan,
+      'curl getnews.tech/usa-today?i=5\\&n=10'.cyan
     ]
   };
   for (var route of routes) {
@@ -119,6 +125,7 @@ const formatHelp = () => {
       `/${route}`.cyan.bold, descriptions[route].join('\n')
     ]);
   }
+  table.push(getTableFooter(2));
   return table.toString() + '\n';
 };
 
@@ -171,6 +178,7 @@ const formatSources = (sources, options) => {
       [name, description, url].join('\n')
     ]);
   }
+  table.push(getTableFooter(2));
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
@@ -228,10 +236,7 @@ const formatArticles = (data, options) => {
     var url = new String(article.url).underline.green;
     table.push([[title, description, url].join('\n')]);
   }
-  table.push([{
-    hAlign: 'center',
-    content: SOCIAL_MEDIA_TEXT + GITHUB_TEXT + GITHUB_LINK
-  }]);
+  table.push(getTableFooter(1));
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
@@ -244,7 +249,7 @@ const formatArticles = (data, options) => {
 
 module.exports = exports = {
   ERROR: ERROR,
-  formatHelp: format,
+  formatHelp: formatHelp,
   formatSources: formatSources,
   formatArticles: formatArticles
 };

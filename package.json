@@ -13,7 +13,6 @@
     "colors": "^1.1.2",
     "css-loader": "^0.28.4",
     "d3": "^4.9.1",
-    "email-alerts": "^2.2.3",
     "express": "^4.15.3",
     "file-loader": "^0.11.2",
     "fs-extra": "^4.0.0",
