@@ -8,57 +8,46 @@ const colors = require('colors');
 const Table = require('cli-table2');
 
 /**
- * Enpty constructor for a DataFormatter class.
- * @constructor
- */
-function DataFormatter() {
-  throw new Error('DataFormatter should not be instantiated!');
-}
-
-/**
- * @const
+ * The default number of characters for formatting the table width.
  * @type {number}
  */
-DataFormatter.DEFAULT_DISPLAY_WIDTH = 72;
+const DEFAULT_DISPLAY_WIDTH = 72;
 
 /**
- * @const
+ * If the user specifies a width less than this, a warning will be displayed.
  * @type {number}
  */
-DataFormatter.WIDTH_WARNING_THRESHOLD = 70;
+const WIDTH_WARNING_THRESHOLD = 70;
 
 /**
- * @const
+ * Default help text.
  * @type {string}
  */
-DataFormatter.HELP = '\nTo find a list of sources to query, use: ' +
-    'curl getnews.tech/help\n';
+const HELP = '\nTo find a list of sources to query, use: curl ' +
+    'getnews.tech/help\n';
 
 /**
- * @const
+ * Default warning text.
  * @type {string}
  */
-DataFormatter.SOCIAL_MEDIA_TEXT = 'Follow '.green + '@omgimanerd '.blue +
-    'on Twitter and GitHub.\n'.green;
-
-/**
- * @const
- * @type {string}
- */
-DataFormatter.GITHUB_TEXT = 'Open source contributions are welcome!\n'.green;
-
-/**
- * @const
- * @type {string}
- */
-DataFormatter.GITHUB_LINK = 'https://github.com/omgimanerd/getnews.tech'.blue;
-
-/**
- * @const
- * @type {string}
- */
-DataFormatter.WARNING = 'Warning: Using too small of a width will cause ' +
+const WARNING = 'Warning: Using too small of a width will cause ' +
     'unpredictable behavior!\n';
+
+/**
+ * This method returns the table footer that is appended to every output
+ * Table.
+ * @return {Array<Object>}
+ */
+const getTableFooter = (colSpan) => {
+  return [{
+    colSpan: colSpan,
+    content: 'Follow '.green + '@omgimanerd '.blue +
+        'on Twitter and GitHub.\n'.green +
+        'Open source contributions are welcome!\n'.green +
+        'https://github.com/omgimanerd/nycurl'.underline.blue,
+    hAlign: 'center'
+  }];
+};
 
 /**
  * This method takes a string of text and separates it into lines of text
@@ -67,7 +56,7 @@ DataFormatter.WARNING = 'Warning: Using too small of a width will cause ' +
  * @param {number} maxLineLength The maximum length of each line.
  * @return {string}
  */
-DataFormatter.formatTextWrap = function(text, maxLineLength) {
+const formatTextWrap = (text, maxLineLength) => {
   var words = text.replace(/[\r\n]+/g, ' ').split(' ');
   var lineLength = 0;
   var output = '';
@@ -83,7 +72,11 @@ DataFormatter.formatTextWrap = function(text, maxLineLength) {
   return output;
 };
 
-DataFormatter.formatHelp = function() {
+/**
+ * This method formats and returns the help text.
+ * @return {string}
+ */
+const formatHelp = () => {
   var table = new Table({
     head: ['Route'.bold, 'Description'.bold],
     colWidth: [10, 60]
@@ -129,10 +122,16 @@ DataFormatter.formatHelp = function() {
   return table.toString() + '\n';
 };
 
-DataFormatter.formatSources = function(sources, options) {
+/**
+ * This function formats the available sources into a table.
+ * @param {Array<Object>} sources The source objects to format.
+ * @param {?Object=} options Options for display.
+ * @return {string}
+ */
+const formatSources = (sources, options) => {
   var maxWidth = parseInt(options['w'] || options['width']);
   if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DataFormatter.DEFAULT_DISPLAY_WIDTH;
+    maxWidth = DEFAULT_DISPLAY_WIDTH;
   }
   /**
    * We first calculate the maximum width for the column containing the
@@ -164,21 +163,18 @@ DataFormatter.formatSources = function(sources, options) {
     * We subtract 2 when calculating the space formatting for the text to
     * account for the padding at the edges of the table.
     */
-    var name = DataFormatter.formatTextWrap(
-        source.name, descriptionWidth - 2).bold.cyan;
-    var description = DataFormatter.formatTextWrap(
-        source.description, descriptionWidth - 2);
+    var name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan;
+    var description = formatTextWrap(source.description, descriptionWidth - 2);
     var url = new String(source.url).underline.green;
     table.push([
       new String(source.id).green,
       [name, description, url].join('\n')
     ]);
   }
-  if (maxWidth < DataFormatter.WIDTH_WARNING_THRESHOLD) {
+  if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
-      content: DataFormatter.formatTextWrap(
-          DataFormatter.WARNING, maxWidth).red,
+      content: formatTextWrap(WARNING, maxWidth).red,
       hAlign: 'center'
     }]);
   }
@@ -200,10 +196,10 @@ DataFormatter.formatSources = function(sources, options) {
  *   - width (width, defaults to DEFAULT_DISPLAY_WIDTH)
  * @return {string}
  */
-DataFormatter.formatArticles = function(data, options) {
+const formatArticles = (data, options) => {
   var maxWidth = parseInt(options['w'] || options['width']);
   if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DataFormatter.DEFAULT_DISPLAY_WIDTH;
+    maxWidth = DEFAULT_DISPLAY_WIDTH;
   }
   var index = parseInt(options['i'] || options['index']);
   if (isNaN(index) || index < 0) {
@@ -214,53 +210,41 @@ DataFormatter.formatArticles = function(data, options) {
     number = Number.MAX_SAFE_INTEGER;
   }
 
-  var articles = data.sort(function(a, b) {
+  var articles = data.sort((a, b) => {
     return a.title.localeCompare(b.section);
   }).slice(index, index + number);
   var table = new Table();
   table.push(
-    [{
-      hAlign: 'center',
-      content: 'Articles'.bold.red
-    }],
-    [{
-      hAlign: 'center',
-      content: DataFormatter.formatTextWrap(DataFormatter.HELP, maxWidth).red
-    }]
+    [{ hAlign: 'center', content: 'Articles'.bold.red }],
+    [{ hAlign: 'center', content: formatTextWrap(HELP, maxWidth).red }]
   );
   for (var article of articles) {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
      */
-    var title = DataFormatter.formatTextWrap(
-        article.title, maxWidth - 4).bold.cyan;
-    var description = DataFormatter.formatTextWrap(
-        article.description, maxWidth - 4);
+    var title = formatTextWrap(article.title, maxWidth - 4).bold.cyan;
+    var description = formatTextWrap(article.description, maxWidth - 4);
     var url = new String(article.url).underline.green;
-    table.push([
-      [title, description, url].join('\n')
-    ]);
+    table.push([[title, description, url].join('\n')]);
   }
   table.push([{
     hAlign: 'center',
-    content: DataFormatter.SOCIAL_MEDIA_TEXT +
-        DataFormatter.GITHUB_TEXT +
-        DataFormatter.GITHUB_LINK
+    content: SOCIAL_MEDIA_TEXT + GITHUB_TEXT + GITHUB_LINK
   }]);
-  if (maxWidth < DataFormatter.WIDTH_WARNING_THRESHOLD) {
+  if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
-      content: DataFormatter.formatTextWrap(
-          DataFormatter.WARNING, maxWidth).red,
+      content: formatTextWrap(WARNING, maxWidth).red,
       hAlign: 'center'
     }]);
   }
   return table.toString() + '\n';
 };
 
-/**
- * This line is needed on the server side since this is loaded as a module
- * into the node server.
- */
-module.exports = DataFormatter;
+module.exports = exports = {
+  ERROR: ERROR,
+  formatHelp: format,
+  formatSources: formatSources,
+  formatArticles: formatArticles
+};

@@ -4,82 +4,56 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
-const async = require('async');
-const request = require('request');
+const request = require('request-promise');
 
-/**
- * Constructor for an ApiAccessor.
- * @constructor
- * @param {string} news_api_key The API key for the News API.
- * @param {string} url_shortener_api_key The API key for Google's URL
- *   Shortener API.
- */
-function ApiAccessor(news_api_key, url_shortener_api_key) {
-  this.news_api_key = news_api_key;
-  this.url_shortener_api_key = url_shortener_api_key;
-  this.cache = {};
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
+if (!NEWS_API_KEY) {
+  throw new Error('No News API key specified. Make sure you have \
+      NEWS_API_KEY in your environment variables.');
+}
+
+const URL_SHORTENER_API_KEY = process.env.URL_SHORTENER_API_KEY;
+if (!URL_SHORTENER_API_KEY) {
+  throw new Error('No URL Shortener API key specified. Make sure you have \
+      URL_SHORTENER_API_KEY in your environment variables.');
 }
 
 /**
- * @const
+ * Base URL for the news API.
  * @type {string}
  */
-ApiAccessor.ARTICLES_BASE_URL = 'https://newsapi.org/v1/articles';
+const NEWS_API_BASE_URL = 'https://newsapi.org/v1/';
+
 
 /**
- * @const
- * @type {string}
- */
-ApiAccessor.SOURCES_BASE_URL = 'https://newsapi.org/v1/sources';
-
-/**
- * @const
- * @type {string}
- */
-ApiAccessor.BAD_SOURCE = 'sourceDoesntExist';
-
-/**
- * @const
+ * Base URL for the URL Shortener API.
  * @type {type}
  */
-ApiAccessor.URL_SHORTENER_BASE_URL =
-  'https://www.googleapis.com/urlshortener/v1/url';
+const URL_SHORTENER_BASE_URL = 'https://www.googleapis.com/urlshortener/v1/url';
 
 /**
- * Milliseconds in 10 minutes
- * @const
+ * The error string returned when an invalid source is queried.
+ * @type {string}
+ */
+const BAD_SOURCE = 'sourceDoesntExist';
+
+/**
+ * Milliseconds in 10 minutes, the duration which results will be cached.
  * @type {number}
  */
-ApiAccessor.CACHE_KEEP_TIME = 600000;
+const CACHE_KEEP_TIME = 600000;
 
-/**
- * Factory method for an ApiAccessor.
- * @param {Object} options A JSON object containing the news API key and the
- *   the URL shortener API key.
- * @return {ApiAccessor}
- */
-ApiAccessor.create = function(options) {
-  if (!options.news_api_key) {
-    throw new Error('No News API key specified.');
-  } else if (!options.url_shortener_api_key) {
-    throw new Error('No URL shortener API key specified.');
-  }
-  return new ApiAccessor(
-      options.news_api_key,
-      options.url_shortener_api_key
-  );
-};
+const cache = {};
 
 /**
  * This method sends a request to Google's URL Shortener API to get
- * a shortened URL. Any errors will also propagate through the callback.
+ * a shortened URL and returns a Promise.
  * @param {string} url The URL to shorten.
- * @param {function()} callback The callback function to which the shortened
- *   URL is passed along with any errors.
+ * @return {Promise}
  */
-ApiAccessor.prototype.shortenUrl = function(url, callback) {
-  request({
-    url: ApiAccessor.URL_SHORTENER_BASE_URL,
+const shortenUrl = (url, callback) => {
+  return request({
+    uri: URL_SHORTENER_BASE_URL,
     method: 'POST',
     headers: {
       // The Referer field is necessary because of the referrer limitation set
@@ -88,16 +62,15 @@ ApiAccessor.prototype.shortenUrl = function(url, callback) {
       'Content-Type': 'application/json'
     },
     body: { longUrl: url },
-    qs: { key: this.url_shortener_api_key },
+    qs: { key: URL_SHORTENER_API_KEY },
     json: true
-  }, function(error, response, body) {
-    if (error) {
-      return callback(error);
-    } else if (body && body.id) {
-      return callback(error, body.id);
-    } else {
-      return callback('An error occurred! Please try again later.');
-    }
+  }).then(data => {
+    return Promise.resolve(data.id);
+  }).catch(error => {
+    return Promise.reject({
+      message: 'URL Shortener API failure',
+      error: error
+    });
   });
 };
 
@@ -105,121 +78,78 @@ ApiAccessor.prototype.shortenUrl = function(url, callback) {
  * This method fetches article sources from the News API and passes it to
  * a callback. Any errors will be passed to the callback as well.
  * @param {Object} options Options for customizing the request
- * @param {function()} callback The callback function to which the sources
- *   are passed, along with any errors.
- * @return {function()}
+ * @return {Promise}
  */
-ApiAccessor.prototype.fetchSources = function(options, callback) {
-  var context = this;
-  request({
-    url: ApiAccessor.SOURCES_BASE_URL,
+const fetchSources = options => {
+  return request({
+    uri: NEWS_API_BASE_URL + 'sources',
     qs: options,
     json: true
-  }, function(error, response, body) {
-    if (error) {
-      return callback(error);
-    } else if (!body || !body.sources) {
-      return callback('No sources were returned from the News API!');
-    } else {
-      return callback(null, body.sources);
-    }
-  })
+  }).then(data => {
+    return Promise.resolve(data.sources);
+  }).catch(error => {
+    return Promise.reject({
+      message: 'News API source fetching failure',
+      error: error
+    });
+  });
 };
 
 /**
- * This method fetches article data from the News API and and passes it into a
- * callback. Any errors will be passed to the callback as well.
+ * This method fetches article data from the News API and returns a Promise.
  * @param {string} source The News API source to query.
- * @param {function()} callback The callback function to which the articles are
- *   passed, along with any errors.
- * @return {function()}
+ * @return {Promise}
  */
-ApiAccessor.prototype.fetchArticles = function(source, callback) {
+const fetchArticles = source => {
   /**
    * We first check if the query has been cached within the last 10
    * minutes. If it has, then we return the cached data. If not, we then
    * fetch new data from the News API.
    */
-  var currentTime = (new Date()).getTime();
-  if (this.cache[source] && currentTime < this.cache[source].expires) {
-    return callback(null, this.cache[source].results);
+  var currentTime = Date.now();
+  if (cache[source] && currentTime < cache[source].expires) {
+    return callback(null, cache[source].results);
   }
   /**
    * If the section being requested was not cached, then we need to fetch the
    * data from the News API.
-   * This asynchronous series call first sends a request to the News
-   * API for a list of the top stories. It then iterates through
-   * each article returned to generate a shortened version of each
-   * article's URL. The resulting object is then cached and returned through
-   * the callback.
    */
-  var context = this;
-  async.waterfall([
-    function(innerCallback) {
-      /**
-       * This first asynchronous function sends a request to the News
-       * API for the articles, which we pass to the callback to
-       * the next asynchronous function call.
-       */
-      request({
-        url: ApiAccessor.ARTICLES_BASE_URL,
-        qs: {
-          'source': source,
-          'apiKey': context.news_api_key
-        },
-        json: true
-      }, function(error, response, body) {
-        if (error) {
-          innerCallback(error);
-        } else if (response.statusCode === 401) {
-          innerCallback('News API key error. Authorization failed.');
-        } else if (!body || body.code === ApiAccessor.BAD_SOURCE) {
-          innerCallback(body.code);
-        } else if (!body.articles) {
-          innerCallback('No results were returned from the News API!');
-        } else {
-          innerCallback(null, body.articles);
-        }
-      });
-    }, function(results, innerCallback) {
-      /**
-       * This inner asynchronous function iterates through
-       * the list of results from the News API to generate a
-       * shortened URL for each.
-       */
-      async.map(results, function(result, mappingCallback) {
-        context.shortenUrl(result.url, function(error, shortenedUrl) {
-          if (error) {
-            return mappingCallback(error);
-          }
-          result.url = shortenedUrl;
-          mappingCallback(null, result);
-        });
-      }, function(error, data) {
-        if (error) {
-          return innerCallback(error);
-        }
-        innerCallback(null, data);
-      });
-    }
-  ], function(error, results) {
+  return request({
+    url: NEWS_API_BASE_URL + 'articles',
+    qs: {
+      'source': source,
+      'apiKey': NEWS_API_KEY
+    },
+    json: true
+  }).then(data => {
     /**
-     * When we are done, we cache the data and send it back through the
-     * callback unless there was an error.
+     * We shorten the URLs for each article.
      */
-    if (error) {
-      return callback(error);
-    }
-    context.cache[source] = {
-      results: results,
-      expires: (new Date()).getTime() + ApiAccessor.CACHE_KEEP_TIME
+    return Promise.all(data.articles.map(article => {
+      return shortenUrl(article.url).then(shortenedUrl => {
+        article.url = shortenedUrl;
+        return Promise.resolve(article);
+      });
+    }));
+  }).then(data => {
+    /**
+     * We cache the result and then return it in a resolved Promise.
+     */
+    cache[source] = {
+      results: data,
+      expires: currentTime + CACHE_KEEP_TIME
     };
-    return callback(null, results);
+    return Promise.resolve(data);
+  }).catch(error => {
+    return Promise.reject({
+      message: 'News API article fetching failure',
+      error: error
+    });
   });
 };
 
-/**
- * This line is needed on the server side since this is loaded as a module
- * into the node server.
- */
-module.exports = ApiAccessor;
+module.exports = exports = {
+  shortenUrl: shortenUrl,
+  fetchSources: fetchSources,
+  fetchArticles: fetchArticles
+};

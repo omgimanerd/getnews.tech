@@ -103,7 +103,7 @@ app.get('/help', function(request, response) {
   }
 });
 
-app.get(/^\/sources$|^\/$/, function(request, response) {
+app.get('/sources', function(request, response) {
   var callback = function(error, sources) {
     if (error) {
       console.error(error);
@@ -137,7 +137,7 @@ app.get('/:source?', function(request, response, next) {
   var source = request.params.source;
   var callback = function(error, results) {
     if (error) {
-      console.error(error);
+      console.error(error, results);
       if (request.isCurl) {
         response.status(500).send(
             'An error occurred. Please try again later. '.red +
