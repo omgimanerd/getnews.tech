@@ -52,8 +52,7 @@ export URL_SHORTENER_API_KEY=YOUR_KEY_HERE
 
 Install the project dependencies:
 ```
-npm install
-bower install
+yarn install # or npm install
 ```
 
 Run the server:
