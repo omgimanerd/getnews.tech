@@ -26,10 +26,10 @@ module.exports = exports = (options) => {
   const errorFile = options.errorFile
 
   const errorTransports = [
-    // new winston.transports.Console({
-    //   prettyPrint: true,
-    //   timestamp: true
-    // }),
+    new winston.transports.Console({
+      prettyPrint: true,
+      timestamp: true
+    }),
     new winston.transports.File({
       filename: errorFile,
       timestamp: true

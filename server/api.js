@@ -131,7 +131,6 @@ const fetchArticles = source => {
     }
     return results
   }).catch(error => {
-    console.log(error.error.code)
     return errorBuilder.promise('NewsAPIArticlesShorteningError',
         error.error ? error.error : error)
   })

@@ -4,7 +4,8 @@
  */
 
 const buildError = (name, data) => {
-  const error = new Error(data)
+  const error = new Error()
+  error.data = data || {}
   error.name = name
   return error
 }
