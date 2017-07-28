@@ -66,7 +66,7 @@ const formatTextWrap = (text, maxLineLength) => {
   var words = text.replace(/[\r\n]+/g, ' ').split(' ')
   var lineLength = 0
   var output = ''
-  for (word of words) {
+  for (var word of words) {
     if (lineLength + word.length >= maxLineLength) {
       output += `\n${word} `
       lineLength = word.length + 1
