@@ -4,48 +4,47 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
-const request = require('request-promise');
+const request = require('request-promise')
 
-const errorBuilder = require('./errorBuilder');
+const errorBuilder = require('./errorBuilder')
 
-const NEWS_API_KEY = process.env.NEWS_API_KEY;
+const NEWS_API_KEY = process.env.NEWS_API_KEY
 if (!NEWS_API_KEY) {
   throw new Error('No News API key specified. Make sure you have \
-      NEWS_API_KEY in your environment variables.');
+      NEWS_API_KEY in your environment variables.')
 }
 
-const URL_SHORTENER_API_KEY = process.env.URL_SHORTENER_API_KEY;
+const URL_SHORTENER_API_KEY = process.env.URL_SHORTENER_API_KEY
 if (!URL_SHORTENER_API_KEY) {
   throw new Error('No URL Shortener API key specified. Make sure you have \
-      URL_SHORTENER_API_KEY in your environment variables.');
+      URL_SHORTENER_API_KEY in your environment variables.')
 }
 
 /**
  * Base URL for the news API.
  * @type {string}
  */
-const NEWS_API_BASE_URL = 'https://newsapi.org/v1/';
-
+const NEWS_API_BASE_URL = 'https://newsapi.org/v1/'
 
 /**
  * Base URL for the URL Shortener API.
  * @type {type}
  */
-const URL_SHORTENER_BASE_URL = 'https://www.googleapis.com/urlshortener/v1/url';
+const URL_SHORTENER_BASE_URL = 'https://www.googleapis.com/urlshortener/v1/url'
 
 /**
  * The error string returned when an invalid source is queried.
  * @type {string}
  */
-const BAD_SOURCE = 'sourceDoesntExist';
+const BAD_SOURCE = 'sourceDoesntExist'
 
 /**
  * Milliseconds in 10 minutes, the duration which results will be cached.
  * @type {number}
  */
-const CACHE_KEEP_TIME = 600000;
+const CACHE_KEEP_TIME = 600000
 
-const cache = {};
+const cache = {}
 
 /**
  * This method sends a request to Google's URL Shortener API to get
@@ -67,8 +66,8 @@ const shortenUrl = (url, callback) => {
     qs: { key: URL_SHORTENER_API_KEY },
     json: true
   }).then(data => data.id)
-    .catch(error => errorBuilder.promise('URLShortenerAPIError', error));
-};
+    .catch(error => errorBuilder.promise('URLShortenerAPIError', error))
+}
 
 /**
  * This method fetches article sources from the News API and passes it to
@@ -82,8 +81,8 @@ const fetchSources = options => {
     qs: options,
     json: true
   }).then(data => data.sources)
-    .catch(error => errorBuilder.promise('NewsAPISourceError', error));
-};
+    .catch(error => errorBuilder.promise('NewsAPISourceError', error))
+}
 
 /**
  * This method fetches article data from the News API and returns a Promise.
@@ -96,9 +95,9 @@ const fetchArticles = source => {
    * minutes. If it has, then we return the cached data. If not, we then
    * fetch new data from the News API.
    */
-  const currentTime = Date.now();
+  const currentTime = Date.now()
   if (cache[source] && currentTime < cache[source].expires) {
-    return Promise.resolve(cache[source].results);
+    return Promise.resolve(cache[source].results)
   }
   /**
    * If the section being requested was not cached, then we need to fetch the
@@ -117,31 +116,30 @@ const fetchArticles = source => {
      */
     return Promise.all(data.articles.map(article => {
       return shortenUrl(article.url).then(shortenedUrl => {
-        article.url = shortenedUrl;
-        return article;
-      });
-    }));
+        article.url = shortenedUrl
+        return article
+      })
+    }))
   }).then(data => {
-    const results = data.sort((a, b) => a.title.localeCompare(b.title));
+    const results = data.sort((a, b) => a.title.localeCompare(b.title))
     /**
      * We cache the result and then return it in a resolved Promise.
      */
     cache[source] = {
       results: results,
       expires: currentTime + CACHE_KEEP_TIME
-    };
-    return results;
-  }).catch(error => {
-    if (error instanceof Error) {
-      return Promise.reject(error);
     }
-    return errorBuilder.promise('NewsAPIArticlesError', error.error);
-  });
-};
+    return results
+  }).catch(error => {
+    console.log(error.error.code)
+    return errorBuilder.promise('NewsAPIArticlesShorteningError',
+        error.error ? error.error : error)
+  })
+}
 
 module.exports = exports = {
   BAD_SOURCE: BAD_SOURCE,
   shortenUrl: shortenUrl,
   fetchSources: fetchSources,
   fetchArticles: fetchArticles
-};
+}

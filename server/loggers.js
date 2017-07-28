@@ -3,38 +3,38 @@
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
-const expressWinston = require('express-winston');
-const winston = require('winston');
-const winstonMail = require('winston-mail');
+const expressWinston = require('express-winston')
+const winston = require('winston')
+const winstonMail = require('winston-mail')
 
-const ALERT_EMAIL = process.env.ALERT_EMAIL;
-const USERNAME = process.env.USERNAME;
-const PASSWORD = process.env.PASSWORD;
+const ALERT_EMAIL = process.env.ALERT_EMAIL
+const USERNAME = process.env.USERNAME
+const PASSWORD = process.env.PASSWORD
 if (!USERNAME || !PASSWORD || !ALERT_EMAIL) {
-  throw new Error('Production configuration not provided!');
+  throw new Error('Production configuration not provided!')
 }
 
 const dynamicMetaFunction = (request, response) => {
   return {
     ip: request.headers['x-forwarded-for'] || request.ip
-  };
-};
+  }
+}
 
 module.exports = exports = (options) => {
-  const PROD_MODE = options.PROD_MODE;
-  const analyticsFile = options.analyticsFile;
-  const errorFile = options.errorFile;
+  const PROD_MODE = options.PROD_MODE
+  const analyticsFile = options.analyticsFile
+  const errorFile = options.errorFile
 
   const errorTransports = [
-    new winston.transports.Console({
-      prettyPrint: true,
-      timestamp: true
-    }),
+    // new winston.transports.Console({
+    //   prettyPrint: true,
+    //   timestamp: true
+    // }),
     new winston.transports.File({
       filename: errorFile,
       timestamp: true
     })
-  ];
+  ]
   if (PROD_MODE) {
     errorTransports.push(new winston.transports.Mail({
       to: ALERT_EMAIL,
@@ -43,7 +43,7 @@ module.exports = exports = (options) => {
       password: PASSWORD,
       subject: 'NYCURL ERROR',
       ssl: true
-    }));
+    }))
   }
 
   return {
@@ -57,7 +57,7 @@ module.exports = exports = (options) => {
         })
       ],
       skip: (request, response) => {
-        return response.statusCode != 200;
+        return response.statusCode != 200
       },
       dynamicMeta: dynamicMetaFunction
     }),
@@ -72,5 +72,5 @@ module.exports = exports = (options) => {
     errorLogger: new winston.Logger({
       transports: errorTransports
     })
-  };
-};
+  }
+}

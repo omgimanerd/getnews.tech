@@ -4,13 +4,13 @@
  */
 
 const buildError = (name, data) => {
-  const error = new Error(data);
-  error.name = name;
-  return error;
-};
+  const error = new Error(data)
+  error.name = name
+  return error
+}
 
 const promise = (name, data) => {
-  return Promise.reject(buildError(name, data));
-};
+  return Promise.reject(buildError(name, data))
+}
 
-module.exports = exports = { promise };
+module.exports = exports = { promise }

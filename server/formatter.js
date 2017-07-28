@@ -4,40 +4,40 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
-const colors = require('colors');
-const Table = require('cli-table2');
+const colors = require('colors')
+const Table = require('cli-table2')
 
 /**
  * The default number of characters for formatting the table width.
  * @type {number}
  */
-const DEFAULT_DISPLAY_WIDTH = 72;
+const DEFAULT_DISPLAY_WIDTH = 72
 
 /**
  * If the user specifies a width less than this, a warning will be displayed.
  * @type {number}
  */
-const WIDTH_WARNING_THRESHOLD = 70;
+const WIDTH_WARNING_THRESHOLD = 70
 
 /**
  * Default help text.
  * @type {string}
  */
 const HELP = '\nTo find a list of sources to query, use: curl ' +
-    'getnews.tech/help\n';
+    'getnews.tech/help\n'
 
 /**
  * Default warning text.
  * @type {string}
  */
 const WARNING = 'Warning: Using too small of a width will cause ' +
-    'unpredictable behavior!\n';
+    'unpredictable behavior!\n'
 
 /**
  * The error to show when a user queries an invalid source.
  * @type {string}
  */
-const INVALID_SOURCE = '\nYou queried an invalid source!\n';
+const INVALID_SOURCE = '\nYou queried an invalid source!\n'
 
 /**
  * This method returns the table footer that is appended to every output
@@ -52,8 +52,8 @@ const getTableFooter = colSpan => {
         'Open source contributions are welcome!\n'.green +
         'https://github.com/omgimanerd/nycurl'.underline.blue,
     hAlign: 'center'
-  }];
-};
+  }]
+}
 
 /**
  * This method takes a string of text and separates it into lines of text
@@ -63,20 +63,20 @@ const getTableFooter = colSpan => {
  * @return {string}
  */
 const formatTextWrap = (text, maxLineLength) => {
-  var words = text.replace(/[\r\n]+/g, ' ').split(' ');
-  var lineLength = 0;
-  var output = '';
+  var words = text.replace(/[\r\n]+/g, ' ').split(' ')
+  var lineLength = 0
+  var output = ''
   for (word of words) {
     if (lineLength + word.length >= maxLineLength) {
-      output += `\n${word} `;
-      lineLength = word.length + 1;
+      output += `\n${word} `
+      lineLength = word.length + 1
     } else {
-      output += `${word} `;
-      lineLength += word.length + 1;
+      output += `${word} `
+      lineLength += word.length + 1
     }
   }
-  return output;
-};
+  return output
+}
 
 /**
  * This method formats and returns the help text.
@@ -84,13 +84,13 @@ const formatTextWrap = (text, maxLineLength) => {
  * @return {string}
  */
 const formatHelp = (invalidSource) => {
-  var table = new Table({ colWidth: [10, 60] });
+  var table = new Table({ colWidth: [10, 60] })
   if (invalidSource) {
     table.push([{
       colSpan: 2,
       content: INVALID_SOURCE.bold.red,
       hAlign: 'center'
-    }]);
+    }])
   }
   table.push([{
     content: 'Route'.red.bold,
@@ -98,8 +98,8 @@ const formatHelp = (invalidSource) => {
   }, {
     content: 'Description'.red.bold,
     hAlign: 'center'
-  }]);
-  var routes = ['help', 'sources', '<source>'];
+  }])
+  var routes = ['help', 'sources', '<source>']
   var descriptions = {
     help: [
       'Show this help page. No options available.\n',
@@ -131,15 +131,15 @@ const formatHelp = (invalidSource) => {
       'curl getnews.tech/espn?w=100'.cyan,
       'curl getnews.tech/usa-today?i=5\\&n=10'.cyan
     ]
-  };
+  }
   for (var route of routes) {
     table.push([
       `/${route}`.cyan.bold, descriptions[route].join('\n')
-    ]);
+    ])
   }
-  table.push(getTableFooter(2));
-  return table.toString() + '\n';
-};
+  table.push(getTableFooter(2))
+  return table.toString() + '\n'
+}
 
 /**
  * This function formats the available sources into a table.
@@ -148,9 +148,9 @@ const formatHelp = (invalidSource) => {
  * @return {string}
  */
 const formatSources = (sources, options) => {
-  var maxWidth = parseInt(options['w'] || options['width']);
+  var maxWidth = parseInt(options['w'] || options['width'])
   if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DEFAULT_DISPLAY_WIDTH;
+    maxWidth = DEFAULT_DISPLAY_WIDTH
   }
 
   /**
@@ -158,46 +158,46 @@ const formatSources = (sources, options) => {
    * source IDs, adding two to account for cell padding.
    */
   const maxIdWidth = Math.max(...sources.map(source =>
-      source.id.length).concat('Source'.length)) + 2;
+      source.id.length).concat('Source'.length)) + 2
   /**
    * The remaining space is then allocated to the description, subtracting
    * 3 to account for the table borders.
    */
-  const descriptionWidth = maxWidth - maxIdWidth - 3;
+  const descriptionWidth = maxWidth - maxIdWidth - 3
   var table = new Table({
     colWidths: [maxIdWidth, descriptionWidth]
-  });
+  })
   table.push([{
     content: 'Source'.bold.red,
     hAlign: 'center'
   }, {
     content: 'Description'.red.bold,
     hAlign: 'center'
-  }]);
+  }])
   for (var source of sources) {
-    var id = source.id.green;
+    var id = source.id.green
     /**
     * We subtract 2 when calculating the space formatting for the text to
     * account for the padding at the edges of the table.
     */
-    var name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan;
-    var description = formatTextWrap(source.description, descriptionWidth - 2);
-    var url = new String(source.url).underline.green;
+    var name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan
+    var description = formatTextWrap(source.description, descriptionWidth - 2)
+    var url = new String(source.url).underline.green
     table.push([
       new String(source.id).green,
       [name, description, url].join('\n')
-    ]);
+    ])
   }
-  table.push(getTableFooter(2));
+  table.push(getTableFooter(2))
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
       content: formatTextWrap(WARNING, maxWidth).red,
       hAlign: 'center'
-    }]);
+    }])
   }
-  return table.toString() + '\n';
-};
+  return table.toString() + '\n'
+}
 
 /**
  * This function takes the array of article results returned from the News API
@@ -212,58 +212,58 @@ const formatSources = (sources, options) => {
  * @return {string}
  */
 const formatArticles = (articles, options) => {
-  var maxWidth = parseInt(options['w'] || options['width']);
+  var maxWidth = parseInt(options['w'] || options['width'])
   if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DEFAULT_DISPLAY_WIDTH;
+    maxWidth = DEFAULT_DISPLAY_WIDTH
   }
-  var index = parseInt(options['i'] || options['index']);
+  var index = parseInt(options['i'] || options['index'])
   if (isNaN(index) || index < 0) {
-    index = 0;
+    index = 0
   }
-  var number = parseInt(options['n'] || options['number']);
+  var number = parseInt(options['n'] || options['number'])
   if (isNaN(number) || number <= 0) {
-    number = articles.length;
+    number = articles.length
   }
 
-  articles = articles.splice(index, number);
+  articles = articles.splice(index, number)
   /**
    * We first calculate how wide the column containing the article numbers
    * will be, adding two to account for the cell padding.
    */
-  const maxNumbersWidth = (index + number).toString().length + 2;
+  const maxNumbersWidth = (index + number).toString().length + 2
   /**
    * The borders of the table take up 3 characters, so we allocate the rest of
    * the space to the articles column.
    */
-  const articlesWidth = maxWidth - maxNumbersWidth - 3;
-  var table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] });
+  const articlesWidth = maxWidth - maxNumbersWidth - 3
+  var table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] })
   table.push([{
     colSpan: 2,
     content: HELP.red,
     hAlign: 'center'
-  }], ['#'.red, 'Article'.red]);
+  }], ['#'.red, 'Article'.red])
   for (var article of articles) {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
      */
-    const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan;
-    const description = formatTextWrap(article.description, articlesWidth - 4);
-    const url = new String(article.url).underline.green;
+    const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan
+    const description = formatTextWrap(article.description, articlesWidth - 4)
+    const url = new String(article.url).underline.green
     table.push([
       (index++).toString().blue,
       [title, description, url].join('\n')
-    ]);
+    ])
   }
-  table.push(getTableFooter(2));
+  table.push(getTableFooter(2))
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
       colSpan: 2,
       content: formatTextWrap(WARNING, maxWidth).red,
       hAlign: 'center'
-    }]);
+    }])
   }
-  return table.toString() + '\n';
-};
+  return table.toString() + '\n'
+}
 
-module.exports = exports = { formatHelp, formatSources, formatArticles };
+module.exports = exports = { formatHelp, formatSources, formatArticles }
