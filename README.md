@@ -7,35 +7,38 @@ article.
 ## Usage
 You can fetch the latest news simply by typing  
 ```bash
-curl getnews.tech
+curl getnews.tech/espn
+curl getnews.tech/daily-mail
+curl getnews.tech/cnn
 ```
-This application also accepts queries to the various sections of the NY Times.
+
+Get a list of acceptable sources to query using:
 ```bash
-curl getnews.tech/technology
-curl getnews.tech/politics
+curl getnews.tech/sources
 ```
-Get a list of acceptable sections to query using:
-```bash
-curl getnews.tech/help
-```
+
 By default, getnews.tech will format the table to be a max of 72 characters
 wide. If you would like to specify a custom width for your terminal, you do so
 using:
 ```bash
-curl getnews.tech?w=92
-curl getnews.tech/technology?w=100
+curl getnews.tech/daily-mail?w=92
 ```
 You can also limit the number of articles to display.
 ```bash
-curl getnews.tech?n=10
-curl getnews.tech?n=12\&w=95
+curl getnews.tech/cnbc?n=10
+curl getnews.tech/buzzfeed?n=12\&w=95
 ```
 Note that when combining the parameters on the command line as query parameters,
 you must use `\&` to escape the ampersand character.
 
+To see a full list of options, query:
+```
+curl getnews.tech/help
+```
+
 ## Contributing
 Fork this repository and send me a pull request with any suggestions and
-changes. Use two-space indents and camel-cased variables.
+changes. Use [StandardJS](https://standardjs.com/) to format your JavaScript.
 
 You will need to acquire an API Key from the [News API](https://newsapi.org/)
 and a URL Shortener API Key from
@@ -53,11 +56,10 @@ npm install
 bower install
 ```
 
-Run the server in development node:
+Run the server:
 ```
-node server.js --dev
+node server.js
 ```
-**IF YOU DON'T USE DEV MODE, YOU WON'T BE ABLE TO GET IT WORKING**
 
 ## License
-[MIT](https://github.com/omgimanerd/getnews.tech/blob/master/LICENSE)
+[Apache 2](https://github.com/omgimanerd/getnews.tech/blob/master/LICENSE)
