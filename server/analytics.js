@@ -7,6 +7,8 @@
 const fs = require('fs-extra');
 const geoip = require('geoip-native');
 
+const errorBuilder = require('./errorBuilder');
+
 /**
  * Milliseconds in an hour, the duration which analytics data will be cached.
  * @type {number}
@@ -38,15 +40,8 @@ const get = file => {
     cache[file] = {};
     cache[file].analytics = data;
     cache[file].expires = currentTime + CACHE_KEEP_TIME;
-    return Promise.resolve(data);
-  }).catch(error => {
-    return Promise.reject({
-      message: 'Analytics fetching failure',
-      error: error
-    });
-  });
+    return data;
+  }).catch(error => errorBuilder.promise('AnalyticsError', error));
 };
 
-module.exports = exports = {
-  get: get
-};
+module.exports = exports = { get };

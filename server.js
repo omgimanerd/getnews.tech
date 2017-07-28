@@ -7,6 +7,8 @@ const PROD_MODE = process.argv.includes('--prod');
 const PORT = process.env.PORT || 5000;
 const GITHUB_PAGE = 'https://github.com/omgimanerd/getnews.tech';
 
+const INTERNAL_ERROR = 'An error occurred! Please try again later.\n';
+
 // Dependencies.
 const colors = require('colors');
 const express = require('express');
@@ -97,11 +99,11 @@ app.get('/:source?', (request, response, next) => {
       response.status(301).redirect(GITHUB_PAGE);
     }
   }).catch(error => {
-    if (error.error.code === api.BAD_SOURCE) {
+    if (error.message.code === api.BAD_SOURCE) {
       response.status(400).send(formatter.formatHelp(true));
     } else {
       logError(error);
-      response.status(500).send(formatter.ERROR);
+      response.status(500).send(INTERNAL_ERROR);
     }
   });
 });
@@ -112,8 +114,8 @@ app.use((request, response) => {
 
 app.use((error, request, response, next) => {
   logError(error);
-  response.status(500).send(formatter.ERROR);
-})
+  response.status(500).send(INTERNAL_ERROR);
+});
 
 // Starts the server.
 http.Server(app).listen(PORT, () => {

@@ -20,12 +20,6 @@ const DEFAULT_DISPLAY_WIDTH = 72;
 const WIDTH_WARNING_THRESHOLD = 70;
 
 /**
- * Default error text.
- * @type {string}
- */
-const ERROR = 'An error occurred! Please try again later.\n'.red;
-
-/**
  * Default help text.
  * @type {string}
  */
@@ -272,9 +266,4 @@ const formatArticles = (articles, options) => {
   return table.toString() + '\n';
 };
 
-module.exports = exports = {
-  ERROR: ERROR,
-  formatHelp: formatHelp,
-  formatSources: formatSources,
-  formatArticles: formatArticles
-};
+module.exports = exports = { formatHelp, formatSources, formatArticles };

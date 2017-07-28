@@ -6,6 +6,8 @@
 
 const request = require('request-promise');
 
+const errorBuilder = require('./errorBuilder');
+
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 if (!NEWS_API_KEY) {
   throw new Error('No News API key specified. Make sure you have \
@@ -64,14 +66,8 @@ const shortenUrl = (url, callback) => {
     body: { longUrl: url },
     qs: { key: URL_SHORTENER_API_KEY },
     json: true
-  }).then(data => {
-    return Promise.resolve(data.id);
-  }).catch(error => {
-    return Promise.reject({
-      message: 'URL Shortener API failure',
-      error: error
-    });
-  });
+  }).then(data => data.id)
+    .catch(error => errorBuilder.promise('URLShortenerAPIError', error));
 };
 
 /**
@@ -85,14 +81,8 @@ const fetchSources = options => {
     uri: NEWS_API_BASE_URL + 'sources',
     qs: options,
     json: true
-  }).then(data => {
-    return Promise.resolve(data.sources);
-  }).catch(error => {
-    return Promise.reject({
-      message: 'News API source fetching failure',
-      error: error
-    });
-  });
+  }).then(data => data.sources)
+    .catch(error => errorBuilder.promise('NewsAPISourceError', error));
 };
 
 /**
@@ -128,13 +118,11 @@ const fetchArticles = source => {
     return Promise.all(data.articles.map(article => {
       return shortenUrl(article.url).then(shortenedUrl => {
         article.url = shortenedUrl;
-        return Promise.resolve(article);
+        return article;
       });
     }));
   }).then(data => {
-    const results = data.sort((a, b) => {
-      return a.title.localeCompare(b.title);
-    });
+    const results = data.sort((a, b) => a.title.localeCompare(b.title));
     /**
      * We cache the result and then return it in a resolved Promise.
      */
@@ -142,12 +130,12 @@ const fetchArticles = source => {
       results: results,
       expires: currentTime + CACHE_KEEP_TIME
     };
-    return Promise.resolve(results);
+    return results;
   }).catch(error => {
-    return Promise.reject({
-      message: 'News API article fetching failure',
-      error: error.constructor === Error ? error : error.error
-    });
+    if (error instanceof Error) {
+      return Promise.reject(error);
+    }
+    return errorBuilder.promise('NewsAPIArticlesError', error.error);
   });
 };
 
