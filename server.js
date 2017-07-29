@@ -86,8 +86,7 @@ app.get('/:source?', (request, response, next) => {
     response.status(301).redirect(GITHUB_PAGE)
     return
   }
-
-  var source = request.params.source
+  var source = request.params.source || 'help';
   if (source === 'help') {
     response.send(formatter.formatHelp())
     return
