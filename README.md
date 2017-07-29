@@ -4,6 +4,40 @@ This is a web server that formats the latest news from various sources on
 the web. A link to each article is included if the user wants to read the full
 article.
 
+## Example output
+```
+sigma:~$ curl getnews.tech/ars-technica?n=3
+┌──────────────────────────────────────────────────────────────────────┐
+│                                                                      │
+│   To find a list of sources to query, use: curl getnews.tech/help    │
+│                                                                      │
+├───┬──────────────────────────────────────────────────────────────────┤
+│ # │ Article                                                          │
+├───┼──────────────────────────────────────────────────────────────────┤
+│ 0 │ 34 criminal cases tossed after body cam footage shows cop        │
+│   │ planting drugs                                                   │
+│   │ “It is incumbent upon us as prosecutors to be the ministers      │
+│   │ of justice.”                                                     │
+│   │ https://goo.gl/YEd8Ba                                            │
+├───┼──────────────────────────────────────────────────────────────────┤
+│ 1 │ Apollo 13 escape room at Houston Escape Hunt is absolutely       │
+│   │ delightful                                                       │
+│   │ And while we didn’t quite all survive, the joy was indeed in     │
+│   │ the journey.                                                     │
+│   │ https://goo.gl/asfTGc                                            │
+├───┼──────────────────────────────────────────────────────────────────┤
+│ 2 │ Broadcom chip bug opened 1 billion phones to a Wi-Fi-hopping     │
+│   │ worm attack                                                      │
+│   │ Wi-Fi chips used in iPhones and Android may revive worm          │
+│   │ attacks of old.                                                  │
+│   │ https://goo.gl/1JjFf7                                            │
+├───┴──────────────────────────────────────────────────────────────────┤
+│              Follow @omgimanerd on Twitter and GitHub.               │
+│                Open source contributions are welcome!                │
+│                 https://github.com/omgimanerd/nycurl                 │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
 ## Usage
 You can fetch the latest news simply by typing  
 ```bash

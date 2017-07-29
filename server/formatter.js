@@ -50,7 +50,7 @@ const getTableFooter = colSpan => {
     content: 'Follow '.green + '@omgimanerd '.blue +
         'on Twitter and GitHub.\n'.green +
         'Open source contributions are welcome!\n'.green +
-        'https://github.com/omgimanerd/nycurl'.underline.blue,
+        'https://github.com/omgimanerd/getnews.tech'.underline.blue,
     hAlign: 'center'
   }]
 }
