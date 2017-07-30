@@ -24,7 +24,7 @@ const WIDTH_WARNING_THRESHOLD = 70
  * @type {string}
  */
 const HELP = '\nTo find a list of sources to query, use: curl ' +
-    'getnews.tech/help\n'
+    'getnews.tech/sources\n'
 
 /**
  * Default warning text.
