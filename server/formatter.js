@@ -225,7 +225,7 @@ const formatArticles = (articles, options) => {
     number = articles.length
   }
 
-  articles = articles.splice(index, number)
+  articles = articles.slice(index, index + number)
   /**
    * We first calculate how wide the column containing the article numbers
    * will be, adding two to account for the cell padding.
