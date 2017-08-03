@@ -32,8 +32,11 @@ const get = file => {
     return Promise.resolve(entry.analytics)
   }
   return fs.readFile(file, 'utf8').then(data => {
-    data = data.trim().split('\n').map(entry => JSON.parse(
-      entry, (key, value) => key == 'ip' ? geoip.lookup(value) : value))
+    data = data.trim().split('\n').map(entry => {
+      entry = JSON.parse(entry)
+      entry.country = geoip.lookup(entry.ip).name
+      return entry
+    })
     cache[file] = {}
     cache[file].analytics = data
     cache[file].expires = currentTime + CACHE_KEEP_TIME

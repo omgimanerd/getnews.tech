@@ -24,8 +24,8 @@ const iterByDay = (min, max, callback) => {
 
 const getDateRange = data => {
   return data.length < 2 ? null : {
-    min: moment(data[0].date).startOf('day'),
-    max: moment(data[data.length - 1].date).endOf('day')
+    min: moment(data[0].timestamp).startOf('day'),
+    max: moment(data[data.length - 1].timestamp).endOf('day')
   }
 }
 

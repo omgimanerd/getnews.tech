@@ -12,7 +12,6 @@ const INTERNAL_ERROR = 'An error occurred! Please try again later.\n'
 // Dependencies.
 const colors = require('colors')
 const express = require('express')
-const fs = require('fs')
 const http = require('http')
 const path = require('path')
 

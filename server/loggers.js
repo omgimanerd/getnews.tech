@@ -7,13 +7,6 @@ const expressWinston = require('express-winston')
 const winston = require('winston')
 const winstonMail = require('winston-mail')
 
-const ALERT_EMAIL = process.env.ALERT_EMAIL
-const USERNAME = process.env.USERNAME
-const PASSWORD = process.env.PASSWORD
-if (!USERNAME || !PASSWORD || !ALERT_EMAIL) {
-  throw new Error('Production configuration not provided!')
-}
-
 const dynamicMetaFunction = (request, response) => {
   return {
     ip: request.headers['x-forwarded-for'] || request.ip
@@ -22,6 +15,13 @@ const dynamicMetaFunction = (request, response) => {
 
 module.exports = exports = (options) => {
   const PROD_MODE = options.PROD_MODE
+  const ALERT_EMAIL = process.env.ALERT_EMAIL
+  const USERNAME = process.env.USERNAME
+  const PASSWORD = process.env.PASSWORD
+  if (PROD_MODE && (!USERNAME || !PASSWORD || !ALERT_EMAIL)) {
+    throw new Error('Production configuration not provided!')
+  }
+  
   const analyticsFile = options.analyticsFile
   const errorFile = options.errorFile
 
