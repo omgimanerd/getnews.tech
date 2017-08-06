@@ -69,7 +69,7 @@ module.exports = exports = (options) => {
       colorize: true,
       dynamicMeta: dynamicMetaFunction
     }),
-    errorLogger: new winston.Logger({
+    errorLogger: expressWinston.errorLogger({
       transports: errorTransports
     })
   }
