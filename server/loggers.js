@@ -21,7 +21,7 @@ module.exports = exports = (options) => {
   if (PROD_MODE && (!USERNAME || !PASSWORD || !ALERT_EMAIL)) {
     throw new Error('Production configuration not provided!')
   }
-  
+
   const analyticsFile = options.analyticsFile
   const errorFile = options.errorFile
 
@@ -41,7 +41,7 @@ module.exports = exports = (options) => {
       host: 'smtp.gmail.com',
       username: USERNAME,
       password: PASSWORD,
-      subject: 'NYCURL ERROR',
+      subject: 'GETNEWS.TECH ERROR',
       ssl: true
     }))
   }
@@ -69,7 +69,9 @@ module.exports = exports = (options) => {
       colorize: true,
       dynamicMeta: dynamicMetaFunction
     }),
-    errorLogger: expressWinston.errorLogger({
+    // We are using a plain winston logger here because we will invoke this
+    // logger's logging methods manually instead of using it as middleware.
+    errorLogger: new winston.Logger({
       transports: errorTransports
     })
   }
