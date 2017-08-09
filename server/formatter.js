@@ -47,7 +47,7 @@ const INVALID_SOURCE = '\nYou queried an invalid source!\n'
 const getTableFooter = colSpan => {
   return [{
     colSpan: colSpan,
-    content: 'Powered by the News API'.green +
+    content: 'Powered by the News API\n'.green +
         'Follow '.green + '@omgimanerd '.blue +
         'on Twitter and GitHub.\n'.green +
         'Open source contributions are welcome!\n'.green +
