@@ -63,7 +63,7 @@ const getTableFooter = colSpan => {
  * @return {string}
  */
 const formatTextWrap = (text, maxLineLength) => {
-  var words = text.replace(/[\r\n]+/g, ' ').split(' ')
+  var words = (text || '').replace(/[\r\n]+/g, ' ').split(' ')
   var lineLength = 0
   var output = ''
   for (var word of words) {

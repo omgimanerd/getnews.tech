@@ -97,7 +97,7 @@ app.get('/:source?', (request, response, next) => {
       response.status(301).redirect(GITHUB_PAGE)
     }
   }).catch(error => {
-    if (error.data.code === api.BAD_SOURCE) {
+    if (error.data && error.data.code === api.BAD_SOURCE) {
       response.status(400).send(formatter.formatHelp(true))
     } else {
       logError(error)
