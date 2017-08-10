@@ -4,9 +4,10 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
+const Promise = require('bluebird')
 const request = require('request-promise')
 
-const errorBuilder = require('./errorBuilder')
+const ServerError = require('./ServerError')
 
 const NEWS_API_KEY = process.env.NEWS_API_KEY
 if (!NEWS_API_KEY) {
@@ -65,8 +66,9 @@ const shortenUrl = (url, callback) => {
     body: { longUrl: url },
     qs: { key: URL_SHORTENER_API_KEY },
     json: true
-  }).then(data => data.id)
-    .catch(error => errorBuilder.promise('URLShortenerAPIError', error))
+  }).then(data => data.id).catch(error => {
+    throw new ServerError('Error shortening a URL', error)
+  })
 }
 
 /**
@@ -80,8 +82,9 @@ const fetchSources = options => {
     uri: NEWS_API_BASE_URL + 'sources',
     qs: options,
     json: true
-  }).then(data => data.sources)
-    .catch(error => errorBuilder.promise('NewsAPISourceError', error))
+  }).then(data => data.sources).catch(error => {
+    throw new ServerError('Error fetching sources', error)
+  })
 }
 
 /**
@@ -97,7 +100,7 @@ const fetchArticles = source => {
    */
   const currentTime = Date.now()
   if (cache[source] && currentTime < cache[source].expires) {
-    return Promise.resolve(cache[source].results)
+    return Promise.resolve(cache[source].articles)
   }
   /**
    * If the section being requested was not cached, then we need to fetch the
@@ -110,29 +113,32 @@ const fetchArticles = source => {
       'apiKey': NEWS_API_KEY
     },
     json: true
-  }).then(data => {
+  }).catch(error => {
+    throw new ServerError('Error fetching articles',
+        error.error ? error.error : error)
+  }).get('articles').map(article => {
     /**
      * We shorten the URLs for each article.
      */
-    return Promise.all(data.articles.map(article => {
-      return shortenUrl(article.url).then(shortenedUrl => {
-        article.url = shortenedUrl
-        return article
-      })
-    }))
-  }).then(data => {
-    const results = data.sort((a, b) => a.title.localeCompare(b.title))
+    return shortenUrl(article.url).then(shortenedUrl => {
+      article.url = shortenedUrl
+      return article
+    })
+  }).then(articles => {
+    articles = articles.sort((a, b) => a.title.localeCompare(b.title))
     /**
      * We cache the result and then return it in a resolved Promise.
      */
     cache[source] = {
-      results: results,
+      articles: articles,
       expires: currentTime + CACHE_KEEP_TIME
     }
-    return results
+    return articles
   }).catch(error => {
-    return error.error ? errorBuilder.promise('NewsAPIArticlesShorteningError',
-        error.error) : error
+    if (error instanceof ServerError) {
+      throw error
+    }
+    throw new ServerError('Error shortening article URLs', error)
   })
 }
 

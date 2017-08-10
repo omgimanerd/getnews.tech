@@ -45,9 +45,12 @@ module.exports = exports = (options) => {
       ssl: true
     }))
   }
+  const errorLogger = new winston.Logger({
+    transports: errorTransports
+  })
 
   return {
-    analyticsLogger: expressWinston.logger({
+    analyticsLoggerMiddleware: expressWinston.logger({
       transports: [
         new winston.transports.File({
           json: true,
@@ -61,7 +64,7 @@ module.exports = exports = (options) => {
       },
       dynamicMeta: dynamicMetaFunction
     }),
-    devLogger: expressWinston.logger({
+    devLoggerMiddleware: expressWinston.logger({
       transports: [
         new winston.transports.Console({ showLevel: false, timestamp: true })
       ],
@@ -69,10 +72,8 @@ module.exports = exports = (options) => {
       colorize: true,
       dynamicMeta: dynamicMetaFunction
     }),
-    // We are using a plain winston logger here because we will invoke this
-    // logger's logging methods manually instead of using it as middleware.
-    errorLogger: new winston.Logger({
-      transports: errorTransports
-    })
+    logError: error => {
+      errorLogger.error(JSON.stringify(error.data) + '\n' + error.stack)
+    }
   }
 }

@@ -4,10 +4,12 @@
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
-const fs = require('fs-extra')
+const Promise = require('bluebird')
+
+const fs = Promise.promisifyAll(require('fs'))
 const geoip = require('geoip-native')
 
-const errorBuilder = require('./errorBuilder')
+const ServerError = require('./ServerError')
 
 /**
  * Milliseconds in an hour, the duration which analytics data will be cached.
@@ -31,7 +33,7 @@ const get = file => {
   if (entry && currentTime < entry.expires) {
     return Promise.resolve(entry.analytics)
   }
-  return fs.readFile(file, 'utf8').then(data => {
+  return fs.readFileAsync(file, 'utf8').then(data => {
     data = data.trim().split('\n').map(entry => {
       entry = JSON.parse(entry)
       entry.country = geoip.lookup(entry.ip).name
@@ -41,7 +43,9 @@ const get = file => {
     cache[file].analytics = data
     cache[file].expires = currentTime + CACHE_KEEP_TIME
     return data
-  }).catch(error => errorBuilder.promise('AnalyticsError', error))
+  }).catch(error => {
+    throw new ServerError('AnalyticsError', error)
+  })
 }
 
 module.exports = exports = { get }

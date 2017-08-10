@@ -43,25 +43,19 @@ const max = l => {
 
 const getTrafficData = data => {
   const hitsPerDay = new Map()
-  const curlPerDay = new Map()
   for (const entry of data) {
     const day = moment(entry.timestamp).startOf('day').toString()
     hitsPerDay.set(day, (hitsPerDay.get(day) || 0) + 1)
-    if ((entry.userAgent || '').includes('curl')) {
-      curlPerDay.set(day, (curlPerDay.get(day) || 0) + 1)
-    }
   }
   const dateColumn = ['date']
   const hitsPerDayColumn = ['total requests']
-  const curlPerDayColumn = ['curl requests']
   const range = getDateRange(data)
   iterByDay(range.min, range.max, day => {
     dateColumn.push(day.format('YYYY-MM-DD'))
     day = day.toString()
     hitsPerDayColumn.push(hitsPerDay.get(day) || 0)
-    curlPerDayColumn.push(curlPerDay.get(day) || 0)
   })
-  return [dateColumn, hitsPerDayColumn, curlPerDayColumn]
+  return [dateColumn, hitsPerDayColumn]
 }
 
 const getResponseTimeData = data => {

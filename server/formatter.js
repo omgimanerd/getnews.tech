@@ -47,7 +47,7 @@ const INVALID_SOURCE = '\nYou queried an invalid source!\n'
 const getTableFooter = colSpan => {
   return [{
     colSpan: colSpan,
-    content: 'Powered by the News API\n'.green +
+    content: 'Powered by the News API.\n'.green +
         'Follow '.green + '@omgimanerd '.blue +
         'on Twitter and GitHub.\n'.green +
         'Open source contributions are welcome!\n'.green +
@@ -64,19 +64,17 @@ const getTableFooter = colSpan => {
  * @return {string}
  */
 const formatTextWrap = (text, maxLineLength) => {
-  var words = (text || '').replace(/[\r\n]+/g, ' ').split(' ')
-  var lineLength = 0
-  var output = ''
-  for (var word of words) {
+  const words = String(text).replace(/[\r\n]+/g, ' ').split(' ')
+  let lineLength = 0
+  return words.reduce((result, word) => {
     if (lineLength + word.length >= maxLineLength) {
-      output += `\n${word} `
-      lineLength = word.length + 1
+      lineLength = word.length
+      return result + `\n${word}`
     } else {
-      output += `${word} `
-      lineLength += word.length + 1
+      lineLength += word.length + (result ? 1 : 0)
+      return result ? result + ` ${word}` : `${word}`
     }
-  }
-  return output
+  }, '')
 }
 
 /**
@@ -85,7 +83,7 @@ const formatTextWrap = (text, maxLineLength) => {
  * @return {string}
  */
 const formatHelp = (invalidSource) => {
-  var table = new Table({ colWidth: [10, 60] })
+  const table = new Table({ colWidth: [10, 60] })
   if (invalidSource) {
     table.push([{
       colSpan: 2,
@@ -100,14 +98,14 @@ const formatHelp = (invalidSource) => {
     content: 'Description'.red.bold,
     hAlign: 'center'
   }])
-  var routes = ['help', 'sources', '<source>']
-  var descriptions = {
-    help: [
+  const routes = ['help', 'sources', '<source>']
+  const descriptions = {
+    'help': [
       'Show this help page. No options available.\n',
       'Example Usage:'.red.bold,
       'curl getnews.tech/help'.cyan
     ],
-    sources: [
+    'sources': [
       'Show the available sources to query. Options:\n',
       'Set source category:',
       'category='.blue + '[business, entertainment, gaming, general,'.green,
@@ -133,11 +131,11 @@ const formatHelp = (invalidSource) => {
       'curl getnews.tech/usa-today?i=5\\&n=10'.cyan
     ]
   }
-  for (var route of routes) {
+  routes.forEach((route) => {
     table.push([
       `/${route}`.cyan.bold, descriptions[route].join('\n')
     ])
-  }
+  })
   table.push(getTableFooter(2))
   return table.toString() + '\n'
 }
@@ -149,7 +147,7 @@ const formatHelp = (invalidSource) => {
  * @return {string}
  */
 const formatSources = (sources, options) => {
-  var maxWidth = parseInt(options['w'] || options['width'])
+  let maxWidth = parseInt(options['w'] || options['width'], 10)
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH
   }
@@ -165,9 +163,7 @@ const formatSources = (sources, options) => {
    * 3 to account for the table borders.
    */
   const descriptionWidth = maxWidth - maxIdWidth - 3
-  var table = new Table({
-    colWidths: [maxIdWidth, descriptionWidth]
-  })
+  const table = new Table({ colWidths: [maxIdWidth, descriptionWidth] })
   table.push([{
     content: 'Source'.bold.red,
     hAlign: 'center'
@@ -175,20 +171,19 @@ const formatSources = (sources, options) => {
     content: 'Description'.red.bold,
     hAlign: 'center'
   }])
-  for (var source of sources) {
-    var id = source.id.green
+  sources.forEach(source => {
     /**
     * We subtract 2 when calculating the space formatting for the text to
     * account for the padding at the edges of the table.
     */
-    var name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan
-    var description = formatTextWrap(source.description, descriptionWidth - 2)
-    var url = new String(source.url).underline.green
+    const name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan
+    const description = formatTextWrap(source.description, descriptionWidth - 2)
+    const url = String(source.url).underline.green
     table.push([
-      new String(source.id).green,
+      String(source.id).green,
       [name, description, url].join('\n')
     ])
-  }
+  })
   table.push(getTableFooter(2))
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{
@@ -213,15 +208,15 @@ const formatSources = (sources, options) => {
  * @return {string}
  */
 const formatArticles = (articles, options) => {
-  var maxWidth = parseInt(options['w'] || options['width'])
+  let maxWidth = parseInt(options['w'] || options['width'], 10)
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH
   }
-  var index = parseInt(options['i'] || options['index'])
+  let index = parseInt(options['i'] || options['index'], 10)
   if (isNaN(index) || index < 0) {
     index = 0
   }
-  var number = parseInt(options['n'] || options['number'])
+  let number = parseInt(options['n'] || options['number'], 10)
   if (isNaN(number) || number <= 0) {
     number = articles.length
   }
@@ -231,19 +226,19 @@ const formatArticles = (articles, options) => {
    * We first calculate how wide the column containing the article numbers
    * will be, adding two to account for the cell padding.
    */
-  const maxNumbersWidth = (index + number).toString().length + 2
+  const maxNumbersWidth = String(index + number).length + 2
   /**
    * The borders of the table take up 3 characters, so we allocate the rest of
    * the space to the articles column.
    */
   const articlesWidth = maxWidth - maxNumbersWidth - 3
-  var table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] })
+  const table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] })
   table.push([{
     colSpan: 2,
     content: HELP.red,
     hAlign: 'center'
   }], ['#'.red, 'Article'.red])
-  for (var article of articles) {
+  articles.forEach(article => {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
@@ -255,7 +250,7 @@ const formatArticles = (articles, options) => {
       (index++).toString().blue,
       [title, description, url].join('\n')
     ])
-  }
+  })
   table.push(getTableFooter(2))
   if (maxWidth < WIDTH_WARNING_THRESHOLD) {
     table.push([{

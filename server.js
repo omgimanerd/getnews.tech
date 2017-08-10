@@ -26,7 +26,7 @@ const loggers = require('./server/loggers')({
   analyticsFile: analyticsFile,
   errorFile: errorFile
 })
-const logError = loggers.errorLogger.error
+const logError = loggers.logError
 
 // Server initialization
 var app = express()
@@ -40,10 +40,10 @@ app.use('/robots.txt', express.static(__dirname + '/robots.txt'))
 app.use('/favicon.ico', express.static(__dirname + '/client/favicon.ico'))
 
 // Log general server information to the console.
-app.use(loggers.devLogger)
+app.use(loggers.devLoggerMiddleware)
 
 // Write more specific log information to the server log file
-app.use(loggers.analyticsLogger)
+app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
@@ -97,7 +97,7 @@ app.get('/:source?', (request, response, next) => {
       response.status(301).redirect(GITHUB_PAGE)
     }
   }).catch(error => {
-    if (error.data && error.data.code === api.BAD_SOURCE) {
+    if (error.data.code === api.BAD_SOURCE) {
       response.status(400).send(formatter.formatHelp(true))
     } else {
       logError(error)
