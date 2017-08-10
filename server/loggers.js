@@ -41,7 +41,7 @@ module.exports = exports = (options) => {
       host: 'smtp.gmail.com',
       username: USERNAME,
       password: PASSWORD,
-      subject: 'GETNEWS.TECH ERROR',
+      subject: 'getnews.tech error',
       ssl: true
     }))
   }
@@ -73,7 +73,7 @@ module.exports = exports = (options) => {
       dynamicMeta: dynamicMetaFunction
     }),
     logError: error => {
-      errorLogger.error(JSON.stringify(error.data) + '\n' + error.stack)
+      errorLogger.error(error.toString())
     }
   }
 }

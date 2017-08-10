@@ -7,7 +7,11 @@
 class ServerError extends Error {
   constructor (message, data) {
     super(message)
-    this.data = data || {}
+    this.data = data instanceof Error ? data.message : data || {}
+  }
+
+  toString () {
+    return JSON.stringify(this.data) + '\n' + this.stack
   }
 }
 

@@ -107,7 +107,7 @@ app.get('/:source?', (request, response, next) => {
 })
 
 app.use((request, response) => {
-  response.status(400).send(formatter.formatHelp())
+  response.status(400).send(formatter.formatHelp(true))
 })
 
 app.use((error, request, response, next) => {
