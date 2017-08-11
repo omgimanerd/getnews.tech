@@ -43,10 +43,10 @@ const max = l => {
 
 const getTrafficData = data => {
   const hitsPerDay = new Map()
-  for (const entry of data) {
+  data.forEach(entry => {
     const day = moment(entry.timestamp).startOf('day').toString()
     hitsPerDay.set(day, (hitsPerDay.get(day) || 0) + 1)
-  }
+  })
   const dateColumn = ['date']
   const hitsPerDayColumn = ['total requests']
   const range = getDateRange(data)
@@ -59,15 +59,15 @@ const getTrafficData = data => {
 }
 
 const getResponseTimeData = data => {
-  const timesByDay = []
-  for (var entry of data) {
-    const day = moment(entry.timestamp).startOf('day')
+  const timesByDay = {}
+  data.forEach(entry => {
+    const day = moment(entry.timestamp).startOf('day').toString()
     if (timesByDay[day]) {
       timesByDay[day].push(entry.responseTime || 0)
     } else {
       timesByDay[day] = [entry.responseTime || 0]
     }
-  };
+  })
   const dateColumn = ['date']
   const minColumn = ['min']
   const avgColumn = ['avg']
@@ -84,25 +84,25 @@ const getResponseTimeData = data => {
 
 const getSectionFrequencyData = data => {
   const frequencies = new Map()
-  for (const entry of data) {
-    const url = /\/([a-z]+)|$/g.exec(entry.req.url || '')[1] || 'home'
+  data.forEach(entry => {
+    const url = /\/([a-z\-]+)|$/g.exec(entry.req.url || '')[1] || 'help'
     frequencies.set(url, (frequencies.get(url) || 0) + 1)
-  }
-  const sorted10 = new Map(
-    [...frequencies.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+  })
+  const sortedSlice = new Map(
+    [...frequencies.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   )
   return [
-    ['sections', ...sorted10.keys()],
-    ['frequency', ...sorted10.values()]
+    ['sections', ...sortedSlice.keys()],
+    ['frequency', ...sortedSlice.values()]
   ]
 }
 
 const getCountryFrequencyData = data => {
   const frequencies = new Map()
-  for (const entry of data) {
+  data.forEach(entry => {
     const country = entry.country || 'unknown'
     frequencies.set(country, (frequencies.get(country) || 0) + 1)
-  }
+  })
   const sorted10 = new Map(
     [...frequencies.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
   )
@@ -119,7 +119,8 @@ $(document).ready(() => {
   const dateSlider = document.getElementById('date-slider')
   $.post('/analytics', data => {
     if (data.length == 0) {
-      window.alert('No data!')
+      window.alert('No data retrieved!')
+      throw new Error('No data retrieved!')
     }
     /**
      * Initialize the c3 charts on the page with the analytics data.
@@ -202,7 +203,7 @@ $(document).ready(() => {
         return moment(entry.timestamp).isBetween(sliderRange[0], sliderRange[1])
       })
       if (filteredData.length == 0) {
-        window.alert('This time segment has no data!')
+        window.alert('No data in this time segment!')
         return
       }
       trafficChart.load({

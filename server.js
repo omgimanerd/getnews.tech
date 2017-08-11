@@ -33,7 +33,6 @@ var app = express()
 
 app.set('port', PORT)
 app.set('view engine', 'pug')
-app.disable('etag')
 
 app.use('/dist', express.static(__dirname + '/dist'))
 app.use('/robots.txt', express.static(__dirname + '/robots.txt'))
@@ -70,7 +69,7 @@ app.post('/analytics', (request, response) => {
 app.get('/sources', (request, response) => {
   api.fetchSources(request.query).then(sources => {
     if (request.isCurl) {
-      response.send(formatter.formatSources(sources, request.query))
+      response.status(201).send(formatter.formatSources(sources, request.query))
     } else {
       response.status(301).redirect(GITHUB_PAGE)
     }
@@ -87,7 +86,7 @@ app.get('/:source?', (request, response, next) => {
   }
   var source = request.params.source || 'help'
   if (source === 'help') {
-    response.send(formatter.formatHelp())
+    response.status(201).send(formatter.formatHelp())
     return
   }
   api.fetchArticles(source).then(articles => {
