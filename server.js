@@ -10,6 +10,7 @@ const GITHUB_PAGE = 'https://github.com/omgimanerd/getnews.tech'
 const INTERNAL_ERROR = 'An error occurred! Please try again later.\n'
 
 // Dependencies.
+// eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const express = require('express')
 const http = require('http')
@@ -22,21 +23,20 @@ const analytics = require('./server/analytics')
 const api = require('./server/api')
 const formatter = require('./server/formatter')
 const loggers = require('./server/loggers')({
-  PROD_MODE: PROD_MODE,
-  analyticsFile: analyticsFile,
-  errorFile: errorFile
+  PROD_MODE, analyticsFile, errorFile
 })
 const logError = loggers.logError
 
 // Server initialization
-var app = express()
+const app = express()
 
 app.set('port', PORT)
 app.set('view engine', 'pug')
 
-app.use('/dist', express.static(__dirname + '/dist'))
-app.use('/robots.txt', express.static(__dirname + '/robots.txt'))
-app.use('/favicon.ico', express.static(__dirname + '/client/favicon.ico'))
+app.use('/dist', express.static(path.join(__dirname, '/dist')))
+app.use('/robots.txt', express.static(path.join(__dirname, '/robots.txt')))
+app.use('/favicon.ico', express.static(path.join(__dirname,
+  '/client/favicon.ico')))
 
 // Log general server information to the console.
 app.use(loggers.devLoggerMiddleware)
@@ -49,7 +49,7 @@ app.use((request, response, next) => {
   next()
 })
 
-app.get('/analytics', (request, response) => {
+app.get('/analytics', (request, response, next) => {
   if (request.isCurl) {
     next()
   } else {
@@ -79,12 +79,12 @@ app.get('/sources', (request, response) => {
   })
 })
 
-app.get('/:source?', (request, response, next) => {
+app.get('/:source?', (request, response) => {
   if (!request.isCurl) {
     response.status(301).redirect(GITHUB_PAGE)
     return
   }
-  var source = request.params.source || 'help'
+  const source = request.params.source || 'help'
   if (source === 'help') {
     response.status(201).send(formatter.formatHelp())
     return
@@ -109,6 +109,7 @@ app.use((request, response) => {
   response.status(400).send(formatter.formatHelp(true))
 })
 
+// eslint-disable-next-line no-unused-vars
 app.use((error, request, response, next) => {
   logError(error)
   response.status(500).send(INTERNAL_ERROR.red)
@@ -116,9 +117,11 @@ app.use((error, request, response, next) => {
 
 // Starts the server.
 http.Server(app).listen(PORT, () => {
+  /* eslint-disable no-console */
   if (PROD_MODE) {
-    console.log('STARTING PRODUCTION SERVER ON PORT ' + PORT)
+    console.log(`STARTING PRODUCTION SERVER ON PORT ${PORT}`)
   } else {
-    console.log('STARTING DEV SERVER ON PORT ' + PORT)
+    console.log(`STARTING DEV SERVER ON PORT ${PORT}`)
   }
+  /* eslint-enable no-console */
 })

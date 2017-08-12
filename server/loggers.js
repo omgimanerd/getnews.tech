@@ -5,15 +5,17 @@
 
 const expressWinston = require('express-winston')
 const winston = require('winston')
+// eslint-disable-next-line no-unused-vars
 const winstonMail = require('winston-mail')
 
+// eslint-disable-next-line no-unused-vars, require-jsdoc
 const dynamicMetaFunction = (request, response) => {
   return {
     ip: request.headers['x-forwarded-for'] || request.ip
   }
 }
 
-module.exports = exports = (options) => {
+module.exports = exports = options => {
   const PROD_MODE = options.PROD_MODE
   const ALERT_EMAIL = process.env.ALERT_EMAIL
   const USERNAME = process.env.USERNAME
@@ -59,9 +61,7 @@ module.exports = exports = (options) => {
           timestamp: true
         })
       ],
-      skip: (request, response) => {
-        return response.statusCode != 200
-      },
+      skip: (request, response) => response.statusCode !== 200,
       dynamicMeta: dynamicMetaFunction
     }),
     devLoggerMiddleware: expressWinston.logger({

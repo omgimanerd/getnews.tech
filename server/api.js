@@ -11,21 +11,21 @@ const ServerError = require('./ServerError')
 
 const NEWS_API_KEY = process.env.NEWS_API_KEY
 if (!NEWS_API_KEY) {
-  throw new Error('No News API key specified. Make sure you have \
-      NEWS_API_KEY in your environment variables.')
+  throw new Error('No News API key specified. Make sure you have ' +
+    'NEWS_API_KEY in your environment variables.')
 }
 
 const URL_SHORTENER_API_KEY = process.env.URL_SHORTENER_API_KEY
 if (!URL_SHORTENER_API_KEY) {
-  throw new Error('No URL Shortener API key specified. Make sure you have \
-      URL_SHORTENER_API_KEY in your environment variables.')
+  throw new Error('No URL Shortener API key specified. Make sure you have ' +
+    'URL_SHORTENER_API_KEY in your environment variables.')
 }
 
 /**
  * Base URL for the news API.
  * @type {string}
  */
-const NEWS_API_BASE_URL = 'https://newsapi.org/v1/'
+const NEWS_API_BASE_URL = 'https://newsapi.org/v1'
 
 /**
  * Base URL for the URL Shortener API.
@@ -53,14 +53,16 @@ const cache = {}
  * @param {string} url The URL to shorten.
  * @return {Promise}
  */
-const shortenUrl = (url, callback) => {
+const shortenUrl = url => {
   return request({
     uri: URL_SHORTENER_BASE_URL,
     method: 'POST',
     headers: {
-      // The Referer field is necessary because of the referrer limitation set
-      // on the production API key.
-      'Referer': 'getnews.tech',
+      /*
+       * The Referer field is necessary because of the referrer limitation set
+       * on the production API key.
+       */
+      Referer: 'getnews.tech',
       'Content-Type': 'application/json'
     },
     body: { longUrl: url },
@@ -79,7 +81,7 @@ const shortenUrl = (url, callback) => {
  */
 const fetchSources = options => {
   return request({
-    uri: NEWS_API_BASE_URL + 'sources',
+    uri: `${NEWS_API_BASE_URL}/sources`,
     qs: options,
     json: true
   }).then(data => data.sources).catch(error => {
@@ -107,33 +109,30 @@ const fetchArticles = source => {
    * data from the News API.
    */
   return request({
-    url: NEWS_API_BASE_URL + 'articles',
+    url: `${NEWS_API_BASE_URL}/articles`,
     qs: {
-      'source': source,
-      'apiKey': NEWS_API_KEY
+      source: source,
+      apiKey: NEWS_API_KEY
     },
     json: true
   }).catch(error => {
     throw new ServerError('Error fetching articles',
-        error.error ? error.error : error)
+      error.error ? error.error : error)
   }).get('articles').map(article => {
-    /**
-     * We shorten the URLs for each article.
-     */
-    return shortenUrl(article.url).then(shortenedUrl => {
-      article.url = shortenedUrl
+    return shortenUrl(article.url).then(url => {
+      article.url = url
       return article
     })
   }).then(articles => {
-    articles = articles.sort((a, b) => a.title.localeCompare(b.title))
+    const results = articles.sort((a, b) => a.title.localeCompare(b.title))
     /**
      * We cache the result and then return it in a resolved Promise.
      */
     cache[source] = {
-      articles: articles,
+      articles: results,
       expires: currentTime + CACHE_KEEP_TIME
     }
-    return articles
+    return results
   }).catch(error => {
     if (error instanceof ServerError) {
       throw error
@@ -143,8 +142,5 @@ const fetchArticles = source => {
 }
 
 module.exports = exports = {
-  BAD_SOURCE: BAD_SOURCE,
-  shortenUrl: shortenUrl,
-  fetchSources: fetchSources,
-  fetchArticles: fetchArticles
+  BAD_SOURCE, shortenUrl, fetchSources, fetchArticles
 }

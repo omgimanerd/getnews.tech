@@ -4,6 +4,7 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
+// eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const Table = require('cli-table2')
 
@@ -42,19 +43,18 @@ const INVALID_SOURCE = '\nYou queried an invalid source!\n'
 /**
  * This method returns the table footer that is appended to every output
  * Table.
+ * @param {number} colSpan The number of columns the footer should span.
  * @return {Array<Object>}
  */
-const getTableFooter = colSpan => {
-  return [{
-    colSpan: colSpan,
-    content: 'Powered by the News API.\n'.green +
-        'Follow '.green + '@omgimanerd '.blue +
-        'on Twitter and GitHub.\n'.green +
-        'Open source contributions are welcome!\n'.green +
-        'https://github.com/omgimanerd/getnews.tech'.underline.blue,
-    hAlign: 'center'
-  }]
-}
+const getTableFooter = colSpan => [{
+  colSpan: colSpan,
+  content: 'Powered by the News API.\n'.green +
+      'Follow '.green + '@omgimanerd '.blue +
+      'on Twitter and GitHub.\n'.green +
+      'Open source contributions are welcome!\n'.green +
+      'https://github.com/omgimanerd/getnews.tech'.underline.blue,
+  hAlign: 'center'
+}]
 
 /**
  * This method takes a string of text and separates it into lines of text
@@ -69,11 +69,10 @@ const formatTextWrap = (text, maxLineLength) => {
   return words.reduce((result, word) => {
     if (lineLength + word.length >= maxLineLength) {
       lineLength = word.length
-      return result + `\n${word}`
-    } else {
-      lineLength += word.length + (result ? 1 : 0)
-      return result ? result + ` ${word}` : `${word}`
+      return `${result}\n${word}`
     }
+    lineLength += word.length + (result ? 1 : 0)
+    return result ? `${result} ${word}` : `${word}`
   }, '')
 }
 
@@ -82,7 +81,7 @@ const formatTextWrap = (text, maxLineLength) => {
  * @param {boolean} invalidSource Whether or not the invalid source warning.
  * @return {string}
  */
-const formatHelp = (invalidSource) => {
+const formatHelp = invalidSource => {
   const table = new Table({ colWidth: [10, 60] })
   if (invalidSource) {
     table.push([{
@@ -100,12 +99,12 @@ const formatHelp = (invalidSource) => {
   }])
   const routes = ['help', 'sources', '<source>']
   const descriptions = {
-    'help': [
+    help: [
       'Show this help page. No options available.\n',
       'Example Usage:'.red.bold,
       'curl getnews.tech/help'.cyan
     ],
-    'sources': [
+    sources: [
       'Show the available sources to query. Options:\n',
       'Set source category:',
       'category='.blue + '[business, entertainment, gaming, general,'.green,
@@ -131,13 +130,13 @@ const formatHelp = (invalidSource) => {
       'curl getnews.tech/usa-today?i=5\\&n=10'.cyan
     ]
   }
-  routes.forEach((route) => {
+  routes.forEach(route => {
     table.push([
       `/${route}`.cyan.bold, descriptions[route].join('\n')
     ])
   })
   table.push(getTableFooter(2))
-  return table.toString() + '\n'
+  return `${table.toString()}\n`
 }
 
 /**
@@ -147,7 +146,7 @@ const formatHelp = (invalidSource) => {
  * @return {string}
  */
 const formatSources = (sources, options) => {
-  let maxWidth = parseInt(options['w'] || options['width'], 10)
+  let maxWidth = parseInt(options.w || options.width, 10)
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH
   }
@@ -157,7 +156,7 @@ const formatSources = (sources, options) => {
    * source IDs, adding two to account for cell padding.
    */
   const maxIdWidth = Math.max(...sources.map(source =>
-      source.id.length).concat('Source'.length)) + 2
+    source.id.length).concat('Source'.length)) + 2
   /**
    * The remaining space is then allocated to the description, subtracting
    * 3 to account for the table borders.
@@ -192,7 +191,7 @@ const formatSources = (sources, options) => {
       hAlign: 'center'
     }])
   }
-  return table.toString() + '\n'
+  return `${table.toString()}\n`
 }
 
 /**
@@ -208,20 +207,20 @@ const formatSources = (sources, options) => {
  * @return {string}
  */
 const formatArticles = (articles, options) => {
-  let maxWidth = parseInt(options['w'] || options['width'], 10)
+  let maxWidth = parseInt(options.w || options.width, 10)
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH
   }
-  let index = parseInt(options['i'] || options['index'], 10)
+  let index = parseInt(options.i || options.index, 10)
   if (isNaN(index) || index < 0) {
     index = 0
   }
-  let number = parseInt(options['n'] || options['number'], 10)
+  let number = parseInt(options.n || options.number, 10)
   if (isNaN(number) || number <= 0) {
     number = articles.length
   }
 
-  articles = articles.slice(index, index + number)
+  const articleSlice = articles.slice(index, index + number)
   /**
    * We first calculate how wide the column containing the article numbers
    * will be, adding two to account for the cell padding.
@@ -238,14 +237,14 @@ const formatArticles = (articles, options) => {
     content: HELP.red,
     hAlign: 'center'
   }], ['#'.red, 'Article'.red])
-  articles.forEach(article => {
+  articleSlice.forEach(article => {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
      */
     const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan
     const description = formatTextWrap(article.description, articlesWidth - 4)
-    const url = new String(article.url).underline.green
+    const url = String(article.url).underline.green
     table.push([
       (index++).toString().blue,
       [title, description, url].join('\n')
@@ -259,7 +258,7 @@ const formatArticles = (articles, options) => {
       hAlign: 'center'
     }])
   }
-  return table.toString() + '\n'
+  return `${table.toString()}\n`
 }
 
 module.exports = exports = { formatHelp, formatSources, formatArticles }

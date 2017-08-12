@@ -11,17 +11,28 @@ require('../scss/analytics.scss')
 
 const $ = require('jquery')
 const c3 = require('c3')
+// eslint-disable-next-line no-unused-vars
 const d3 = require('d3')
 const moment = require('moment')
 const noUiSlider = require('nouislider')
 
+/**
+ * Iterates through a date range day by day.
+ * @param {Date|number} min The start date.
+ * @param {Date|number} max The max date.
+ * @param {Function} callback The callback to run on each date.
+ */
 const iterByDay = (min, max, callback) => {
-  var tmp = moment(min)
-  for (const day = tmp; day.isBefore(max); day.add(1, 'day')) {
+  for (const day = moment(min); day.isBefore(max); day.add(1, 'day')) {
     callback(day)
   }
 }
 
+/**
+ * Given an analytics data series, returns the min and max date.
+ * @param {Object} data The analytics data series.
+ * @return {Object}
+ */
 const getDateRange = data => {
   return data.length < 2 ? null : {
     min: moment(data[0].timestamp).startOf('day'),
@@ -29,18 +40,38 @@ const getDateRange = data => {
   }
 }
 
+/**
+ * Returns the rounded minimum element in a list.
+ * @param {Array<number>} l The list to evaluate.
+ * @return {number}
+ */
 const min = l => {
   return !l ? 0 : Math.round(Math.min(...l))
 }
 
+/**
+ * Returns the rounded average element in a list.
+ * @param {Array<number>} l The list to evaluate.
+ * @return {number}
+ */
 const avg = l => {
   return !l ? 0 : Math.round(l.reduce((a, b) => a + b) / l.length)
 }
 
+/**
+ * Returns the rounded maximum element in a list.
+ * @param {Array<number>} l The list to evaluate.
+ * @return {number}
+ */
 const max = l => {
   return !l ? 0 : Math.round(Math.max(...l))
 }
 
+/**
+ * Returns the parsed traffic data from the analytics data series.
+ * @param {Array<Object>} data The analytics data series.
+ * @return {Object}
+ */
 const getTrafficData = data => {
   const hitsPerDay = new Map()
   data.forEach(entry => {
@@ -52,12 +83,16 @@ const getTrafficData = data => {
   const range = getDateRange(data)
   iterByDay(range.min, range.max, day => {
     dateColumn.push(day.format('YYYY-MM-DD'))
-    day = day.toString()
-    hitsPerDayColumn.push(hitsPerDay.get(day) || 0)
+    hitsPerDayColumn.push(hitsPerDay.get(day.toString()) || 0)
   })
   return [dateColumn, hitsPerDayColumn]
 }
 
+/**
+ * Returns the parsed response time data from the analytics data series.
+ * @param {Array<Object>} data The analytics data series.
+ * @return {Object}
+ */
 const getResponseTimeData = data => {
   const timesByDay = {}
   data.forEach(entry => {
@@ -82,10 +117,15 @@ const getResponseTimeData = data => {
   return [dateColumn, maxColumn, avgColumn, minColumn]
 }
 
+/**
+ * Returns the parsed section frequency data from the analytics data series.
+ * @param {Array<Object>} data The analytics data series.
+ * @return {Object}
+ */
 const getSectionFrequencyData = data => {
   const frequencies = new Map()
   data.forEach(entry => {
-    const url = /\/([a-z\-]+)|$/g.exec(entry.req.url || '')[1] || 'help'
+    const url = /\/([a-z-]+)|$/g.exec(entry.req.url || '')[1] || 'help'
     frequencies.set(url, (frequencies.get(url) || 0) + 1)
   })
   const sortedSlice = new Map(
@@ -97,6 +137,11 @@ const getSectionFrequencyData = data => {
   ]
 }
 
+/**
+ * Returns the parsed country frequency data from the analytics data series.
+ * @param {Array<Object>} data The analytics data series.
+ * @return {Object}
+ */
 const getCountryFrequencyData = data => {
   const frequencies = new Map()
   data.forEach(entry => {
@@ -118,7 +163,7 @@ const getCountryFrequencyData = data => {
 $(document).ready(() => {
   const dateSlider = document.getElementById('date-slider')
   $.post('/analytics', data => {
-    if (data.length == 0) {
+    if (data.length === 0) {
       window.alert('No data retrieved!')
       throw new Error('No data retrieved!')
     }
@@ -202,7 +247,7 @@ $(document).ready(() => {
       const filteredData = data.filter(entry => {
         return moment(entry.timestamp).isBetween(sliderRange[0], sliderRange[1])
       })
-      if (filteredData.length == 0) {
+      if (filteredData.length === 0) {
         window.alert('No data in this time segment!')
         return
       }

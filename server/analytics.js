@@ -21,6 +21,7 @@ const cache = {}
 
 /**
  * Fetches analytics on recent site traffic and returns a Promise
+ * @param {string} file file to fetch analytics data from.
  * @return {Promise}
  */
 const get = file => {
@@ -29,20 +30,20 @@ const get = file => {
    * again.
    */
   const currentTime = Date.now()
-  const entry = cache[file]
-  if (entry && currentTime < entry.expires) {
-    return Promise.resolve(entry.analytics)
+  const cacheEntry = cache[file]
+  if (cacheEntry && currentTime < cacheEntry.expires) {
+    return Promise.resolve(cacheEntry.analytics)
   }
   return fs.readFileAsync(file, 'utf8').then(data => {
-    data = data.trim().split('\n').map(entry => {
-      entry = JSON.parse(entry)
-      entry.country = geoip.lookup(entry.ip).name
-      return entry
+    const analytics = data.trim().split('\n').map(entry => {
+      const json = JSON.parse(entry)
+      json.country = geoip.lookup(json.ip).name
+      return json
     })
     cache[file] = {}
-    cache[file].analytics = data
+    cache[file].analytics = analytics
     cache[file].expires = currentTime + CACHE_KEEP_TIME
-    return data
+    return analytics
   }).catch(error => {
     throw new ServerError('AnalyticsError', error)
   })

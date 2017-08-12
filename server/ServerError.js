@@ -4,14 +4,26 @@
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
+/**
+ * Class encapsulating server errors and metadata.
+ */
 class ServerError extends Error {
-  constructor (message, data) {
+  /**
+   * Constructor for a ServerError
+   * @param {string} message The human-readable message to display.
+   * @param {?} data Miscellaneous metadata
+   */
+  constructor(message, data) {
     super(message)
     this.data = data instanceof Error ? data.message : data || {}
   }
 
-  toString () {
-    return JSON.stringify(this.data) + '\n' + this.stack
+  /**
+   * Returns the loggable form of this error.
+   * @return {string}
+   */
+  toString() {
+    return `${JSON.stringify(this.data)}\n${this.stack}`
   }
 }
 

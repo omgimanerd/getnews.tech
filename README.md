@@ -72,7 +72,8 @@ curl getnews.tech/help
 
 ## Contributing
 Fork this repository and send me a pull request with any suggestions and
-changes. Use [StandardJS](https://standardjs.com/) to format your JavaScript.
+changes. Use [ESLint](https://http://eslint.org/) to format your JavaScript
+using the `.eslintrc.js` file included in the repository.
 
 You will need to acquire an API Key from the [News API](https://newsapi.org/)
 and a URL Shortener API Key from
