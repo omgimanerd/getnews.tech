@@ -4,9 +4,8 @@
  */
 
 const expressWinston = require('express-winston')
+const sendgrid = require('sendgrid')
 const winston = require('winston')
-// eslint-disable-next-line no-unused-vars
-const winstonMail = require('winston-mail')
 
 // eslint-disable-next-line no-unused-vars, require-jsdoc
 const dynamicMetaFunction = (request, response) => {
@@ -18,37 +17,26 @@ const dynamicMetaFunction = (request, response) => {
 module.exports = exports = options => {
   const PROD_MODE = options.PROD_MODE
   const ALERT_EMAIL = process.env.ALERT_EMAIL
-  const USERNAME = process.env.USERNAME
-  const PASSWORD = process.env.PASSWORD
-  if (PROD_MODE && (!USERNAME || !PASSWORD || !ALERT_EMAIL)) {
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
+  if (PROD_MODE && (!ALERT_EMAIL || !SENDGRID_API_KEY)) {
     throw new Error('Production configuration not provided!')
   }
+  const sg = sendgrid(SENDGRID_API_KEY)
 
   const analyticsFile = options.analyticsFile
   const errorFile = options.errorFile
 
-  const errorTransports = [
-    new winston.transports.Console({
-      prettyPrint: true,
-      timestamp: true
-    }),
-    new winston.transports.File({
-      filename: errorFile,
-      timestamp: true
-    })
-  ]
-  if (PROD_MODE) {
-    errorTransports.push(new winston.transports.Mail({
-      to: ALERT_EMAIL,
-      host: 'smtp.gmail.com',
-      username: USERNAME,
-      password: PASSWORD,
-      subject: 'getnews.tech error',
-      ssl: true
-    }))
-  }
   const errorLogger = new winston.Logger({
-    transports: errorTransports
+    transports: [
+      new winston.transports.Console({
+        prettyPrint: true,
+        timestamp: true
+      }),
+      new winston.transports.File({
+        filename: errorFile,
+        timestamp: true
+      })
+    ]
   })
 
   return {
@@ -74,6 +62,28 @@ module.exports = exports = options => {
     }),
     logError: error => {
       errorLogger.error(error.toString())
+      if (PROD_MODE) {
+        const request = sg.emptyRequest({
+          method: 'POST',
+          path: '/v3/mail/send',
+          body: {
+            personalizations: [{
+              to: [{ email: ALERT_EMAIL }],
+              subject: 'Error from getnews.tech'
+            }],
+            from: { email: 'alert@getnews.tech' },
+            content: [{
+              type: 'text/plain',
+              value: error.toString()
+            }]
+          }
+        })
+        sg.API(request).then(() => {
+          errorLogger.info('Alert email successfully sent!')
+        }).catch(() => {
+          errorLogger.info('Alert email could not be sent!')
+        })
+      }
     }
   }
 }
