@@ -7,6 +7,7 @@
 const Promise = require('bluebird')
 const moment = require('moment')
 const request = require('request-promise')
+const retry = require('bluebird-retry')
 
 const ServerError = require('./ServerError')
 
@@ -55,7 +56,7 @@ const cache = {}
  * @return {Promise}
  */
 const shortenUrl = url => {
-  return request({
+  return retry(() => request({
     uri: URL_SHORTENER_BASE_URL,
     method: 'POST',
     headers: {
@@ -69,6 +70,10 @@ const shortenUrl = url => {
     body: { longUrl: url },
     qs: { key: URL_SHORTENER_API_KEY },
     json: true
+  }), {
+    // eslint-disable-next-line camelcase
+    max_tries: 10,
+    timeout: 5000
   }).then(data => data.id).catch(error => {
     throw new ServerError('Error shortening a URL', error)
   })
@@ -117,18 +122,28 @@ const fetchArticles = source => {
     },
     json: true
   }).catch(error => {
+    /*
+     * We should exit early if we were unable to fetch articles.
+     */
     throw new ServerError('Error fetching articles',
       error.error ? error.error : error)
   }).get('articles').map(article => {
+    /*
+     * Shorten each of the article's URLs and convert the publishing time
+     * into a moment object.
+     */
     return shortenUrl(article.url).then(url => {
       article.url = url
       article.publishedAt = moment(article.publishedAt)
       return article
     })
   }).then(articles => {
+    /*
+     * Sort the results by date.
+     */
     const results = articles.sort((a, b) => a.publishedAt - b.publishedAt)
-    /**
-     * We cache the result and then return it in a resolved Promise.
+    /*
+     * Cache the results and then return it in a resolved Promise.
      */
     cache[source] = {
       articles: results,
