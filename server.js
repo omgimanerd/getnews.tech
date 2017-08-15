@@ -13,6 +13,7 @@ const INTERNAL_ERROR = 'An error occurred! Please try again later.\n'
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const express = require('express')
+const moment = require('moment-timezone')
 const http = require('http')
 const path = require('path')
 
@@ -91,7 +92,10 @@ app.get('/:source?', (request, response) => {
   }
   api.fetchArticles(source).then(articles => {
     if (request.isCurl) {
-      response.send(formatter.formatArticles(articles, request.query))
+      const locationData = analytics.lookupIp(request.ip)
+      const timezone =
+        locationData ? locationData.location.time_zone : moment.tz.guess()
+      response.send(formatter.formatArticles(articles, timezone, request.query))
     } else {
       response.status(301).redirect(GITHUB_PAGE)
     }

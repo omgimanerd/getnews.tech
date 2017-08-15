@@ -5,7 +5,7 @@
  */
 
 const Promise = require('bluebird')
-const moment = require('moment')
+const moment = require('moment-timezone')
 const request = require('request-promise')
 const retry = require('bluebird-retry')
 

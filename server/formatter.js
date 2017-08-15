@@ -6,6 +6,7 @@
 
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
+const moment = require('moment-timezone')
 const Table = require('cli-table2')
 
 /**
@@ -200,9 +201,9 @@ const formatSources = (sources, options) => {
  * @return {string}
  */
 const formatDate = date => {
-  const time = date.format('h:mma')
   const day = date.format('MMM Do, YYYY')
-  return `Published at ${time} on ${day}`
+  const time = date.format('h:mma z')
+  return `Published on ${day} at ${time}`
 }
 
 /**
@@ -214,10 +215,11 @@ const formatDate = date => {
  * https://newsapi.org/#documentation
  * @param {Array<Object>} articles A list of articles returned by a query to
  *   the News API.
+ * @param {string} timezone The timezone of the requesting IP address
  * @param {?Object=} options A dictionary containing configuration options.
  * @return {string}
  */
-const formatArticles = (articles, options) => {
+const formatArticles = (articles, timezone, options) => {
   let maxWidth = parseInt(options.w || options.width, 10)
   if (isNaN(maxWidth) || maxWidth <= 0) {
     maxWidth = DEFAULT_DISPLAY_WIDTH
@@ -254,7 +256,7 @@ const formatArticles = (articles, options) => {
      * account for the table border and padding.
      */
     const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan
-    const date = formatDate(article.publishedAt).cyan
+    const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
     const description = formatTextWrap(article.description, articlesWidth - 4)
     const url = String(article.url).underline.green
     table.push([
