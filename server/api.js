@@ -5,6 +5,7 @@
  */
 
 const Promise = require('bluebird')
+const moment = require('moment')
 const request = require('request-promise')
 
 const ServerError = require('./ServerError')
@@ -121,10 +122,11 @@ const fetchArticles = source => {
   }).get('articles').map(article => {
     return shortenUrl(article.url).then(url => {
       article.url = url
+      article.publishedAt = moment(article.publishedAt)
       return article
     })
   }).then(articles => {
-    const results = articles.sort((a, b) => a.title.localeCompare(b.title))
+    const results = articles.sort((a, b) => a.publishedAt - b.publishedAt)
     /**
      * We cache the result and then return it in a resolved Promise.
      */

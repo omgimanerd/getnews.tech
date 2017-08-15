@@ -75,7 +75,7 @@ app.get('/sources', (request, response) => {
     }
   }).catch(error => {
     logError(error)
-    response.status(500).send(formatter.ERROR)
+    response.status(500).send(INTERNAL_ERROR.red)
   })
 })
 

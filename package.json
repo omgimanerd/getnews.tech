@@ -32,9 +32,6 @@
     "winston-mail": "^1.3.0"
   },
   "devDependencies": {
-    "eslint": "^4.4.1",
-    "gulp": "^3.9.1",
-    "gulp-gjslint": "^0.1.5",
-    "merge-stream": "^1.0.1"
+    "eslint": "^4.4.1"
   }
 }

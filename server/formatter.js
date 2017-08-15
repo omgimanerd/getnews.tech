@@ -195,6 +195,17 @@ const formatSources = (sources, options) => {
 }
 
 /**
+ * Formats a moment object into a string. Helper method for formatArticles().
+ * @param {Object} date The moment object to format.
+ * @return {string}
+ */
+const formatDate = date => {
+  const time = date.format('h:mma')
+  const day = date.format('MMM Do, YYYY')
+  return `Published at ${time} on ${day}`
+}
+
+/**
  * This function takes the array of article results returned from the News API
  * and formats it into a table for display in your terminal.
  * It assumes that the data has the fields outlined in the documentation
@@ -243,11 +254,12 @@ const formatArticles = (articles, options) => {
      * account for the table border and padding.
      */
     const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan
+    const date = formatDate(article.publishedAt).cyan
     const description = formatTextWrap(article.description, articlesWidth - 4)
     const url = String(article.url).underline.green
     table.push([
       (index++).toString().blue,
-      [title, description, url].join('\n')
+      [title, date, description, url].join('\n')
     ])
   })
   table.push(getTableFooter(2))
