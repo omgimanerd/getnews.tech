@@ -7,7 +7,7 @@
 const Promise = require('bluebird')
 
 const fs = Promise.promisifyAll(require('fs'))
-const geoip = require('geoip-native')
+const maxmind = require('maxmind')
 
 const ServerError = require('./ServerError')
 
@@ -17,7 +17,25 @@ const ServerError = require('./ServerError')
  */
 const CACHE_KEEP_TIME = 3600000
 
+/**
+ * Name of the MMDB file, which is assumed to be in the server directory.
+ * @type {string}
+ */
+const MMDB_FILE = 'server/GeoLite2-City.mmdb'
+
 const cache = {}
+
+// eslint-disable-next-line no-sync
+const maxmindDb = maxmind.openSync(MMDB_FILE)
+
+/**
+ * Looks up an IP address in the maxmind database.
+ * @param {string} ip The IP address to look up.
+ * @return {Object}
+ */
+const lookupIp = ip => {
+  return maxmindDb.get(ip)
+}
 
 /**
  * Fetches analytics on recent site traffic and returns a Promise
@@ -37,16 +55,25 @@ const get = file => {
   return fs.readFileAsync(file, 'utf8').then(data => {
     const analytics = data.trim().split('\n').map(entry => {
       const json = JSON.parse(entry)
-      json.country = geoip.lookup(json.ip).name
+      /*
+       * Iterate through the entries and get a country name for each
+       * IP address.
+       */
+      const locationData = lookupIp(json.ip)
+      json.country = 'unknown'
+      if (locationData) {
+        json.country = locationData.country.names.en
+      }
       return json
     })
-    cache[file] = {}
-    cache[file].analytics = analytics
-    cache[file].expires = currentTime + CACHE_KEEP_TIME
+    cache[file] = {
+      analytics: analytics,
+      expires: currentTime + CACHE_KEEP_TIME
+    }
     return analytics
   }).catch(error => {
     throw new ServerError('AnalyticsError', error)
   })
 }
 
-module.exports = exports = { get }
+module.exports = exports = { lookupIp, get }
