@@ -47,7 +47,6 @@ app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
-  request.ip = request.headers['x-forwarded-for'] || request.headers.ip
   next()
 })
 
@@ -93,7 +92,8 @@ app.get('/:source?', (request, response) => {
   }
   api.fetchArticles(source).then(articles => {
     if (request.isCurl) {
-      const locationData = analytics.lookupIp(request.ip)
+      const locationData =
+        analytics.lookupIp(request.headers['x-forwarded-for'])
       const timezone =
         locationData ? locationData.location.time_zone : moment.tz.guess()
       response.send(formatter.formatArticles(articles, timezone, request.query))
