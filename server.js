@@ -47,6 +47,7 @@ app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
+  request.ip = request.headers['x-forwarded-for'] || request.headers.ip
   next()
 })
 
