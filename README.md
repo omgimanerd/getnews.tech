@@ -4,7 +4,20 @@ This is a web server that formats the latest news from various sources on
 the web. A link to each article is included if the user wants to read the full
 article.
 
-## Example output
+## Usage
+You can fetch the latest news simply by typing  
+```bash
+curl getnews.tech/espn
+curl getnews.tech/daily-mail
+curl getnews.tech/cnn
+```
+
+Get a list of acceptable sources to query using:
+```bash
+curl getnews.tech/sources
+```
+
+## Example Output
 ```
 omgimanerd:~$ curl getnews.tech/ars-technica?n=4
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -48,19 +61,7 @@ omgimanerd:~$ curl getnews.tech/ars-technica?n=4
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-## Usage
-You can fetch the latest news simply by typing  
-```bash
-curl getnews.tech/espn
-curl getnews.tech/daily-mail
-curl getnews.tech/cnn
-```
-
-Get a list of acceptable sources to query using:
-```bash
-curl getnews.tech/sources
-```
-
+## Additional Options
 By default, getnews.tech will format the table to be a max of 72 characters
 wide. If you would like to specify a custom width for your terminal, you do so
 using:
