@@ -6,35 +6,45 @@ article.
 
 ## Example output
 ```
-sigma:~$ curl getnews.tech/ars-technica?n=3
+omgimanerd:~$ curl getnews.tech/ars-technica?n=4
 ┌──────────────────────────────────────────────────────────────────────┐
 │                                                                      │
-│   To find a list of sources to query, use: curl getnews.tech/help    │
+│  To find a list of sources to query, use: curl getnews.tech/sources  │
 │                                                                      │
 ├───┬──────────────────────────────────────────────────────────────────┤
 │ # │ Article                                                          │
 ├───┼──────────────────────────────────────────────────────────────────┤
-│ 0 │ 34 criminal cases tossed after body cam footage shows cop        │
-│   │ planting drugs                                                   │
-│   │ “It is incumbent upon us as prosecutors to be the ministers      │
-│   │ of justice.”                                                     │
-│   │ https://goo.gl/YEd8Ba                                            │
+│ 0 │ Deadly drug-resistant fungus sparks outbreaks in UK—and it’s     │
+│   │ stalking US                                                      │
+│   │ Published on Aug 16th, 2017 at 9:15am PDT                        │
+│   │ It’s unusually good at lurking in hospitals, resisting drugs,    │
+│   │ and killing vulnerable patients.                                 │
+│   │ https://goo.gl/zZJZZ5                                            │
 ├───┼──────────────────────────────────────────────────────────────────┤
-│ 1 │ Apollo 13 escape room at Houston Escape Hunt is absolutely       │
-│   │ delightful                                                       │
-│   │ And while we didn’t quite all survive, the joy was indeed in     │
-│   │ the journey.                                                     │
-│   │ https://goo.gl/asfTGc                                            │
+│ 1 │ Lawyers clash over an imaged hard drive as Waymo v. Uber         │
+│   │ hurtles toward trial                                             │
+│   │ Published on Aug 16th, 2017 at 10:36am PDT                       │
+│   │ "He was ordered to come clean and did not come clean."           │
+│   │ https://goo.gl/iJprfP                                            │
 ├───┼──────────────────────────────────────────────────────────────────┤
-│ 2 │ Broadcom chip bug opened 1 billion phones to a Wi-Fi-hopping     │
-│   │ worm attack                                                      │
-│   │ Wi-Fi chips used in iPhones and Android may revive worm          │
-│   │ attacks of old.                                                  │
-│   │ https://goo.gl/1JjFf7                                            │
+│ 2 │ Ukraine malware author turns witness in Russian DNC hacking      │
+│   │ investigation                                                    │
+│   │ Published on Aug 16th, 2017 at 11:56am PDT                       │
+│   │ “Profexor” turns self in to Ukrainian authorities, assists FBI   │
+│   │ in DNC hack investigation.                                       │
+│   │ https://goo.gl/1M1YzM                                            │
+├───┼──────────────────────────────────────────────────────────────────┤
+│ 3 │ Bank-fraud malware not detected by any AV hosted in Chrome Web   │
+│   │ Store. Twice                                                     │
+│   │ Published on Aug 16th, 2017 at 12:04pm PDT                       │
+│   │ Extension that surreptitiously steals bank passwords uploaded    │
+│   │ twice in 17 days.                                                │
+│   │ https://goo.gl/KmQt4X                                            │
 ├───┴──────────────────────────────────────────────────────────────────┤
+│                       Powered by the News API.                       │
 │              Follow @omgimanerd on Twitter and GitHub.               │
 │                Open source contributions are welcome!                │
-│                 https://github.com/omgimanerd/nycurl                 │
+│              https://github.com/omgimanerd/getnews.tech              │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
