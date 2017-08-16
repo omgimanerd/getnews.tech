@@ -201,9 +201,12 @@ const formatSources = (sources, options) => {
  * @return {string}
  */
 const formatDate = date => {
-  const day = date.format('MMM Do, YYYY')
-  const time = date.format('h:mma z')
-  return `Published on ${day} at ${time}`
+  if (date.isValid()) {
+    const day = date.format('MMM Do, YYYY')
+    const time = date.format('h:mma z')
+    return `Published on ${day} at ${time}`
+  }
+  return 'Publication date not available'
 }
 
 /**

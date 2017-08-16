@@ -31,10 +31,10 @@ const maxmindDb = maxmind.openSync(MMDB_FILE)
 /**
  * Looks up an IP address in the maxmind database.
  * @param {string} ip The IP address to look up.
- * @return {Object}
+ * @return {?Object}
  */
 const lookupIp = ip => {
-  return maxmindDb.get(ip)
+  return maxmindDb.get(ip || '0.0.0.0')
 }
 
 /**
