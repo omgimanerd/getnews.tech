@@ -6,6 +6,7 @@
 const expressWinston = require('express-winston')
 const sendgrid = require('sendgrid')
 const winston = require('winston')
+const util = require('util')
 
 // eslint-disable-next-line no-unused-vars, require-jsdoc
 const dynamicMetaFunction = (request, response) => {
@@ -60,8 +61,9 @@ module.exports = exports = options => {
       colorize: true,
       dynamicMeta: dynamicMetaFunction
     }),
-    logError: error => {
-      errorLogger.error(error.toString())
+    logError: data => {
+      const unpacked = util.inspect(data)
+      errorLogger.error(unpacked)
       if (PROD_MODE) {
         const request = sg.emptyRequest({
           method: 'POST',
@@ -74,7 +76,7 @@ module.exports = exports = options => {
             from: { email: 'alert@getnews.tech' },
             content: [{
               type: 'text/plain',
-              value: error.toString()
+              value: unpacked
             }]
           }
         })
