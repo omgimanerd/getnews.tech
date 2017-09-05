@@ -159,5 +159,10 @@ const fetchArticles = source => {
 }
 
 module.exports = exports = {
-  BAD_SOURCE, shortenUrl, fetchSources, fetchArticles
+  BAD_SOURCE,
+  NEWS_API_BASE_URL,
+  URL_SHORTENER_BASE_URL,
+  shortenUrl,
+  fetchSources,
+  fetchArticles
 }

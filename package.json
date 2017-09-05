@@ -4,7 +4,7 @@
   "description": "A web server that fetches data from the News API and formats it for display in the terminal.",
   "main": "server.js",
   "repository": "git@github.com:omgimanerd/getnews.tech",
-  "author": "omgimanerd <alvin@omgimanerd.tech>",
+  "author": "Alvin Lin <alvin@omgimanerd.tech> (http://omgimanerd.tech)",
   "license": "Apache-2.0",
   "dependencies": {
     "bluebird": "^3.5.0",
@@ -34,6 +34,10 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "eslint": "^4.4.1"
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^4.4.1",
+    "mocha": "^3.5.0",
+    "nock": "^9.0.14"
   }
 }
