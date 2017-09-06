@@ -73,6 +73,8 @@ const shortenUrl = url => {
   }), {
     // eslint-disable-next-line camelcase
     max_tries: 10,
+    // We want to retry the request instantly if it fails.
+    interval: 0,
     timeout: 5000
   }).then(data => data.id).catch(error => {
     throw new ServerError('Error shortening a URL', error)
@@ -160,8 +162,6 @@ const fetchArticles = source => {
 
 module.exports = exports = {
   BAD_SOURCE,
-  NEWS_API_BASE_URL,
-  URL_SHORTENER_BASE_URL,
   shortenUrl,
   fetchSources,
   fetchArticles

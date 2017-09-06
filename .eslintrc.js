@@ -30,7 +30,7 @@ module.exports = {
     'block-scoped-var': 'warn',
     'class-methods-use-this': 'warn',
     'curly': ['warn', 'all'],
-    'dot-location': ['warn', 'object'],
+    'dot-location': ['warn', 'property'],
     'dot-notation': ['error', {
       'allowKeywords': true
     }],
