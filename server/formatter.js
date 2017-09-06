@@ -65,7 +65,7 @@ const getTableFooter = colSpan => [{
  * @return {string}
  */
 const formatTextWrap = (text, maxLineLength) => {
-  const words = String(text).replace(/[\r\n]+/g, ' ').split(' ')
+  const words = String(text).trim().replace(/[\s]+/g, ' ').split(' ')
   let lineLength = 0
   return words.reduce((result, word) => {
     if (lineLength + word.length >= maxLineLength) {
@@ -204,7 +204,7 @@ const formatDate = date => {
   if (date && date.isValid()) {
     const day = date.format('MMM Do, YYYY')
     const time = date.format('h:mma z')
-    return `Published on ${day} at ${time}`
+    return `Published on ${day} at ${time}`.trim()
   }
   return 'Publication date not available'
 }
@@ -278,4 +278,10 @@ const formatArticles = (articles, timezone, options) => {
   return `${table.toString()}\n`
 }
 
-module.exports = exports = { formatHelp, formatSources, formatArticles }
+module.exports = exports = {
+  formatTextWrap,
+  formatHelp,
+  formatSources,
+  formatDate,
+  formatArticles
+}
