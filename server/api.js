@@ -76,8 +76,9 @@ const shortenUrl = url => {
     // We want to retry the request instantly if it fails.
     interval: 0,
     timeout: 5000
-  }).then(data => data.id).catch(error => {
-    throw new ServerError('Error shortening a URL', error)
+  }).then(data => data.id).catch(() => {
+    // Return the original URL on failure.
+    return url
   })
 }
 
@@ -135,8 +136,10 @@ const fetchArticles = source => {
      * into a moment object.
      */
     return shortenUrl(article.url).then(url => {
-      article.url = url
+      article.title = article.title || 'Untitled Article'
       article.publishedAt = moment(article.publishedAt)
+      article.description = article.description || 'No description available'
+      article.url = url
       return article
     })
   }).then(articles => {
