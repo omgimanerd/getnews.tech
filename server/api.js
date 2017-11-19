@@ -39,7 +39,7 @@ const URL_SHORTENER_BASE_URL = 'https://www.googleapis.com/urlshortener/v1/url'
  * The error string returned when an invalid source is queried.
  * @type {string}
  */
-const BAD_SOURCE = 'sourceDoesntExist'
+const BAD_SOURCE = 'sourceDoesNotExist'
 
 /**
  * Milliseconds in 10 minutes, the duration which results will be cached.
