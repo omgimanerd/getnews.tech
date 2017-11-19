@@ -62,7 +62,9 @@ app.post('/analytics', (request, response) => {
   analytics.get(analyticsFile).then(data => {
     response.status(201).send(data)
   }).catch(error => {
-    throw error
+    logError(request)
+    logError(error)
+    response.status(500).send(INTERNAL_ERROR.red)
   })
 })
 
@@ -74,7 +76,9 @@ app.get('/sources', (request, response) => {
       response.status(301).redirect(GITHUB_PAGE)
     }
   }).catch(error => {
-    throw error
+    logError(request)
+    logError(error)
+    response.status(500).send(INTERNAL_ERROR.red)
   })
 })
 
@@ -102,7 +106,9 @@ app.get('/:source?', (request, response) => {
     if (error.data && error.data.code === api.BAD_SOURCE) {
       response.status(400).send(formatter.formatHelp(true))
     } else {
-      throw error
+      logError(request)
+      logError(error)
+      response.status(500).send(INTERNAL_ERROR.red)
     }
   })
 })
