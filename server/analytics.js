@@ -62,7 +62,8 @@ const get = file => {
       const locationData = lookupIp(json.ip)
       json.country = 'unknown'
       if (locationData) {
-        json.country = locationData.country.names.en
+        const country = locationData.country || locationData.registered_country
+        json.country = country.names.en
       }
       return json
     })
