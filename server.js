@@ -7,7 +7,8 @@ const PORT = process.env.PORT || 5000
 const NEWS_API_KEY = process.env.NEWS_API_KEY
 const DB_URL = 'mongodb://localhost:27017'
 
-const INTERNAL_ERROR = 'An error occurred! Please try again in a bit.\n'
+const INVALID_QUERY = '\nInvalid query!\n'
+const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
 
 // Dependencies.
 // eslint-disable-next-line no-unused-vars
@@ -27,10 +28,13 @@ const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
 
+
 // Server initialization
 const client = new mongodb.MongoClient(DB_URL)
+// eslint-disable-next-line new-cap
 const api = new newsapi(NEWS_API_KEY)
 const app = express()
+
 
 app.set('port', PORT)
 app.set('view engine', 'pug')
@@ -59,7 +63,11 @@ app.get('/analytics', (request, response, next) => {
   }
 })
 
-app.get('/s/:short', async(request, response) => {
+app.get('/s/:short', async(request, response, next) => {
+  if (request.isCurl) {
+    next()
+    return
+  }
   try {
     const url = await urlShortener.getOriginalUrl(client, request.params.short)
     response.redirect(url)
@@ -71,7 +79,7 @@ app.get('/s/:short', async(request, response) => {
 
 app.get('/:query', async(request, response) => {
   try {
-    const q = request.params.query.replace(' ', ' ')
+    const q = request.params.query.replace('+', ' ')
     const result = await api.v2.everything({ q })
     const articles = result.articles
     const shortenedUrls = await Promise.all(articles.map(article => {
@@ -94,14 +102,14 @@ app.get('/:query', async(request, response) => {
 })
 
 app.use((request, response) => {
-  response.status(400).send(formatter.formatHelp(true))
+  response.status(404).send(formatter.formatMessage(INVALID_QUERY.red))
 })
 
 // eslint-disable-next-line no-unused-vars
 app.use((error, request, response, next) => {
   logError(request)
   logError(error)
-  response.status(500).send(INTERNAL_ERROR.red)
+  response.status(500).send(formatter.formatMessage(INTERNAL_ERROR.red))
 })
 
 // Starts the server.

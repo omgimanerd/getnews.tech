@@ -11,15 +11,10 @@ const Table = require('cli-table3')
 
 /**
  * The default number of characters for formatting the table width.
+ * @const
  * @type {number}
  */
-const DEFAULT_DISPLAY_WIDTH = 72
-
-/**
- * The error to show when a user queries an invalid source.
- * @type {string}
- */
-const INVALID_SOURCE = '\nYou queried an invalid source!\n'
+const DEFAULT_DISPLAY_WIDTH = 80
 
 /**
  * This method returns the table footer that is appended to every output
@@ -58,117 +53,6 @@ const formatTextWrap = (text, maxLineLength) => {
 }
 
 /**
- * This method formats and returns the help text.
- * @param {boolean} invalidSource Whether or not the invalid source warning.
- * @return {string}
- */
-const formatHelp = invalidSource => {
-  const table = new Table({ colWidth: [10, 60] })
-  if (invalidSource) {
-    table.push([{
-      colSpan: 2,
-      content: INVALID_SOURCE.bold.red,
-      hAlign: 'center'
-    }])
-  }
-  table.push([{
-    content: 'Route'.red.bold,
-    hAlign: 'center'
-  }, {
-    content: 'Description'.red.bold,
-    hAlign: 'center'
-  }])
-  const routes = ['help', 'sources', '<source>']
-  const descriptions = {
-    help: [
-      'Show this help page. No options available.\n',
-      'Example Usage:'.red.bold,
-      'curl getnews.tech/help'.cyan
-    ],
-    sources: [
-      'Show the available sources to query. Options:\n',
-      'Set source category:',
-      'category='.blue + '[business, entertainment, gaming, general,'.green,
-      'music, politics, science-and-nature, sport, technology]\n'.green,
-      'Set source language:',
-      'language='.blue + '[en, de, fr]\n'.green,
-      'Set source country:',
-      'country='.blue + '[au, de, gb, in, it, us]\n'.green,
-      'Example Usage:'.red.bold,
-      'curl getnews.tech/sources?language=de'.cyan,
-      'curl getnews.tech/sources?category=business\\&country=us'.cyan
-    ],
-    '<source>': [
-      'Query for news from the specified source. Options:\n',
-      'Set output width:',
-      'w='.blue + 'WIDTH\n'.green,
-      'Set article #:',
-      'i='.blue + 'INDEX\n'.green,
-      'Limit number of articles:',
-      'n='.blue + 'NUMBER\n'.green,
-      'Example Usage:'.red.bold,
-      'curl getnews.tech/espn?w=100'.cyan,
-      'curl getnews.tech/usa-today?i=5\\&n=10'.cyan
-    ]
-  }
-  routes.forEach(route => {
-    table.push([
-      `/${route}`.cyan.bold, descriptions[route].join('\n')
-    ])
-  })
-  table.push(getTableFooter(2))
-  return `${table.toString()}\n`
-}
-
-/**
- * This function formats the available sources into a table.
- * @param {Array<Object>} sources The source objects to format.
- * @param {?Object=} options Options for display.
- * @return {string}
- */
-const formatSources = (sources, options) => {
-  let maxWidth = parseInt(options.w || options.width, 10)
-  if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DEFAULT_DISPLAY_WIDTH
-  }
-
-  /**
-   * We first calculate the maximum width for the column containing the
-   * source IDs, adding two to account for cell padding.
-   */
-  const maxIdWidth = Math.max(...sources.map(source =>
-    source.id.length).concat('Source'.length)) + 2
-  /**
-   * The remaining space is then allocated to the description, subtracting
-   * 3 to account for the table borders.
-   */
-  const descriptionWidth = maxWidth - maxIdWidth - 3
-  const table = new Table({ colWidths: [maxIdWidth, descriptionWidth] })
-  table.push([{
-    content: 'Source'.bold.red,
-    hAlign: 'center'
-  }, {
-    content: 'Description'.red.bold,
-    hAlign: 'center'
-  }])
-  sources.forEach(source => {
-    /**
-    * We subtract 2 when calculating the space formatting for the text to
-    * account for the padding at the edges of the table.
-    */
-    const name = formatTextWrap(source.name, descriptionWidth - 2).bold.cyan
-    const description = formatTextWrap(source.description, descriptionWidth - 2)
-    const url = String(source.url).underline.green
-    table.push([
-      String(source.id).green,
-      [name, description, url].join('\n')
-    ])
-  })
-  table.push(getTableFooter(2))
-  return `${table.toString()}\n`
-}
-
-/**
  * Formats a moment object into a string. Helper method for formatArticles().
  * @param {Object} date The moment object to format.
  * @return {string}
@@ -181,6 +65,22 @@ const formatDate = date => {
   }
   return 'Publication date not available'
 }
+
+/**
+ * This method formats and returns miscellaneous messages.
+ * @param {boolean} message The message to display
+ * @return {string}
+ */
+const formatMessage = message => {
+  const table = new Table()
+  table.push([{
+    content: message,
+    hAlign: 'center'
+  }])
+  table.push(getTableFooter(1))
+  return `${table.toString()}\n`
+}
+
 
 /**
  * This function takes the array of article results returned from the News API
@@ -220,9 +120,6 @@ const formatArticles = (articles, timezone) => {
 }
 
 module.exports = exports = {
-  formatTextWrap,
-  formatHelp,
-  formatSources,
-  formatDate,
+  formatMessage,
   formatArticles
 }
