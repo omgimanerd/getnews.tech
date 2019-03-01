@@ -6,6 +6,7 @@
 const PORT = process.env.PORT || 5000
 const NEWS_API_KEY = process.env.NEWS_API_KEY
 const DB_URL = 'mongodb://localhost:27017'
+const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 
 const INVALID_QUERY = '\nInvalid query!\n'
 const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
@@ -51,7 +52,7 @@ app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
   if (!(request.headers['user-agent'] || '').includes('curl')) {
-    response.redirect('https://github.com/omgimanerd/getnews.tech')
+    response.redirect(GITHUB_URL)
   } else {
     next()
   }
