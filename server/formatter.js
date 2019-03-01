@@ -14,7 +14,7 @@ const Table = require('cli-table3')
  * @const
  * @type {number}
  */
-const DEFAULT_DISPLAY_WIDTH = 80
+const DEFAULT_DISPLAY_WIDTH = 72
 
 /**
  * This method returns the table footer that is appended to every output
