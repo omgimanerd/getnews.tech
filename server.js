@@ -3,32 +3,33 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
-const PROD_MODE = process.argv.includes('--prod')
 const PORT = process.env.PORT || 5000
-const GITHUB_PAGE = 'https://github.com/omgimanerd/getnews.tech'
+const NEWS_API_KEY = process.env.NEWS_API_KEY
+const DB_URL = 'mongodb://localhost:27017'
 
-const INTERNAL_ERROR = 'An error occurred! Please try again later.\n'
+const INTERNAL_ERROR = 'An error occurred! Please try again in a bit.\n'
 
 // Dependencies.
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const express = require('express')
+const iplocation = require('iplocation').default
 const moment = require('moment-timezone')
-const http = require('http')
+const mongodb = require('mongodb')
+const newsapi = require('newsapi')
 const path = require('path')
 
 const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
-const analytics = require('./server/analytics')
-const api = require('./server/api')
 const formatter = require('./server/formatter')
-const loggers = require('./server/loggers')({
-  PROD_MODE, analyticsFile, errorFile
-})
+const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
+const urlShortener = require('./server/urlShortener')
 
 // Server initialization
+const client = new mongodb.MongoClient(DB_URL)
+const api = new newsapi(NEWS_API_KEY)
 const app = express()
 
 app.set('port', PORT)
@@ -58,59 +59,38 @@ app.get('/analytics', (request, response, next) => {
   }
 })
 
-app.post('/analytics', (request, response) => {
-  analytics.get(analyticsFile).then(data => {
-    response.status(201).send(data)
-  }).catch(error => {
-    logError(request)
+app.get('/s/:short', async(request, response) => {
+  try {
+    const url = await urlShortener.getOriginalUrl(client, request.params.short)
+    response.redirect(url)
+  } catch (error) {
     logError(error)
-    response.status(500).send(INTERNAL_ERROR.red)
-  })
+    response.status(500).send(INTERNAL_ERROR)
+  }
 })
 
-app.get('/sources', (request, response) => {
-  api.fetchSources(request.query).then(sources => {
-    if (request.isCurl) {
-      response.status(201).send(formatter.formatSources(sources, request.query))
-    } else {
-      response.status(301).redirect(GITHUB_PAGE)
+app.get('/:query', async(request, response) => {
+  try {
+    const q = request.params.query.replace(' ', ' ')
+    const result = await api.v2.everything({ q })
+    const articles = result.articles
+    const shortenedUrls = await Promise.all(articles.map(article => {
+      return urlShortener.getShortenedUrl(client, article.url)
+    }))
+    articles.forEach((article, i) => { article.url = shortenedUrls[i] })
+    let timezone = null
+    try {
+      const locationData = await iplocation(request.headers['x-forwarded-for'])
+      timezone = locationData.timezone
+    } catch (error) {
+      timezone = moment.tz.guess()
     }
-  }).catch(error => {
-    logError(request)
+    const output = formatter.formatArticles(articles, timezone)
+    response.send(output)
+  } catch (error) {
     logError(error)
-    response.status(500).send(INTERNAL_ERROR.red)
-  })
-})
-
-app.get('/:source?', (request, response) => {
-  if (!request.isCurl) {
-    response.status(301).redirect(GITHUB_PAGE)
-    return
+    response.status(500).send(INTERNAL_ERROR)
   }
-  const source = request.params.source || 'help'
-  if (source === 'help') {
-    response.status(201).send(formatter.formatHelp())
-    return
-  }
-  api.fetchArticles(source).then(articles => {
-    if (request.isCurl) {
-      const locationData =
-        analytics.lookupIp(request.headers['x-forwarded-for'])
-      const timezone =
-        locationData ? locationData.location.time_zone : moment.tz.guess()
-      response.send(formatter.formatArticles(articles, timezone, request.query))
-    } else {
-      response.status(301).redirect(GITHUB_PAGE)
-    }
-  }).catch(error => {
-    if (error.data && error.data.code === api.BAD_SOURCE) {
-      response.status(400).send(formatter.formatHelp(true))
-    } else {
-      logError(request)
-      logError(error)
-      response.status(500).send(INTERNAL_ERROR.red)
-    }
-  })
 })
 
 app.use((request, response) => {
@@ -125,12 +105,11 @@ app.use((error, request, response, next) => {
 })
 
 // Starts the server.
-http.Server(app).listen(PORT, () => {
+client.connect(async error => {
+  if (error) { throw error }
+  await urlShortener.setup(client)
+  await app.listen(PORT)
   /* eslint-disable no-console */
-  if (PROD_MODE) {
-    console.log(`STARTING PRODUCTION SERVER ON PORT ${PORT}`)
-  } else {
-    console.log(`STARTING DEV SERVER ON PORT ${PORT}`)
-  }
+  console.log(`STARTING SERVER ON PORT ${PORT}`)
   /* eslint-enable no-console */
 })

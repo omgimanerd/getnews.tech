@@ -4,7 +4,6 @@
  */
 
 const expressWinston = require('express-winston')
-const sendgrid = require('sendgrid')
 const winston = require('winston')
 const util = require('util')
 
@@ -15,15 +14,7 @@ const dynamicMetaFunction = (request, response) => {
   }
 }
 
-module.exports = exports = options => {
-  const PROD_MODE = options.PROD_MODE
-  const ALERT_EMAIL = process.env.ALERT_EMAIL
-  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
-  if (PROD_MODE && (!ALERT_EMAIL || !SENDGRID_API_KEY)) {
-    throw new Error('Production configuration not provided!')
-  }
-  const sg = sendgrid(SENDGRID_API_KEY)
-
+module.exports = options => {
   const analyticsFile = options.analyticsFile
   const errorFile = options.errorFile
 
@@ -64,28 +55,6 @@ module.exports = exports = options => {
     logError: data => {
       const unpacked = util.inspect(data)
       errorLogger.error(unpacked)
-      if (PROD_MODE) {
-        const request = sg.emptyRequest({
-          method: 'POST',
-          path: '/v3/mail/send',
-          body: {
-            personalizations: [{
-              to: [{ email: ALERT_EMAIL }],
-              subject: 'Error from getnews.tech'
-            }],
-            from: { email: 'alert@getnews.tech' },
-            content: [{
-              type: 'text/plain',
-              value: unpacked
-            }]
-          }
-        })
-        sg.API(request).then(() => {
-          errorLogger.info('Alert email successfully sent!')
-        }).catch(() => {
-          errorLogger.info('Alert email could not be sent!')
-        })
-      }
     }
   }
 }

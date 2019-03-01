@@ -9,35 +9,23 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "bluebird-retry": "^0.11.0",
-    "c3": "^0.4.14",
-    "cli-table2": "^0.2.0",
+    "cli-table3": "^0.5.1",
     "colors": "^1.1.2",
-    "css-loader": "^0.28.4",
-    "d3": "^4.9.1",
-    "express": "^4.15.3",
-    "express-winston": "^2.4.0",
-    "file-loader": "^0.11.2",
-    "jquery": "^3.2.1",
-    "maxmind": "^2.2.0",
+    "express": "^4.16.4",
+    "express-winston": "^2.6.0",
+    "iplocation": "^6.1.0",
     "moment": "^2.18.1",
-    "moment-timezone": "^0.5.13",
-    "node-sass": "^4.5.3",
-    "nouislider": "^10.0.0",
-    "pug": "^2.0.0-rc.2",
-    "request": "^2.81.0",
-    "request-promise": "^4.2.1",
-    "sass-loader": "^6.0.6",
-    "sendgrid": "^5.2.2",
-    "style-loader": "^0.18.2",
-    "ubuntu-fontface": "^0.1.13",
-    "webpack": "^3.0.0",
-    "winston": "^2.3.1"
+    "moment-timezone": "^0.5.23",
+    "mongodb": "^3.1.13",
+    "nanoid": "^2.0.1",
+    "newsapi": "^2.4.0",
+    "winston": "^2.4.4"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^4.4.1",
-    "mocha": "^3.5.0",
-    "nock": "^9.0.14"
+    "eslint": "^4.19.1",
+    "mocha": "^6.0.2",
+    "nock": "^9.6.1"
   }
 }

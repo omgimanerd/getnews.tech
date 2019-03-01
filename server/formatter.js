@@ -7,33 +7,13 @@
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const moment = require('moment-timezone')
-const Table = require('cli-table2')
+const Table = require('cli-table3')
 
 /**
  * The default number of characters for formatting the table width.
  * @type {number}
  */
 const DEFAULT_DISPLAY_WIDTH = 72
-
-/**
- * If the user specifies a width less than this, a warning will be displayed.
- * @type {number}
- */
-const WIDTH_WARNING_THRESHOLD = 70
-
-/**
- * Default help text.
- * @type {string}
- */
-const HELP = '\nTo find a list of sources to query, use: curl ' +
-    'getnews.tech/sources\n'
-
-/**
- * Default warning text.
- * @type {string}
- */
-const WARNING = 'Warning: Using too small of a width will cause ' +
-    'unpredictable behavior!\n'
 
 /**
  * The error to show when a user queries an invalid source.
@@ -49,7 +29,7 @@ const INVALID_SOURCE = '\nYou queried an invalid source!\n'
  */
 const getTableFooter = colSpan => [{
   colSpan: colSpan,
-  content: 'Powered by the News API.\n'.green +
+  content: 'Powered by the News API (https://newsapi.org).\n'.green +
       'Follow '.green + '@omgimanerd '.blue +
       'on Twitter and GitHub.\n'.green +
       'Open source contributions are welcome!\n'.green +
@@ -185,13 +165,6 @@ const formatSources = (sources, options) => {
     ])
   })
   table.push(getTableFooter(2))
-  if (maxWidth < WIDTH_WARNING_THRESHOLD) {
-    table.push([{
-      colSpan: 2,
-      content: formatTextWrap(WARNING, maxWidth).red,
-      hAlign: 'center'
-    }])
-  }
   return `${table.toString()}\n`
 }
 
@@ -219,62 +192,30 @@ const formatDate = date => {
  * @param {Array<Object>} articles A list of articles returned by a query to
  *   the News API.
  * @param {string} timezone The timezone of the requesting IP address
- * @param {?Object=} options A dictionary containing configuration options.
  * @return {string}
  */
-const formatArticles = (articles, timezone, options) => {
-  let maxWidth = parseInt(options.w || options.width, 10)
-  if (isNaN(maxWidth) || maxWidth <= 0) {
-    maxWidth = DEFAULT_DISPLAY_WIDTH
-  }
-  let index = parseInt(options.i || options.index, 10)
-  if (isNaN(index) || index < 0) {
-    index = 0
-  }
-  let number = parseInt(options.n || options.number, 10)
-  if (isNaN(number) || number <= 0) {
-    number = articles.length
-  }
-
-  const articleSlice = articles.slice(index, index + number)
-  /**
-   * We first calculate how wide the column containing the article numbers
-   * will be, adding two to account for the cell padding.
-   */
-  const maxNumbersWidth = String(index + number).length + 2
-  /**
-   * The borders of the table take up 3 characters, so we allocate the rest of
-   * the space to the articles column.
-   */
-  const articlesWidth = maxWidth - maxNumbersWidth - 3
-  const table = new Table({ colWidths: [maxNumbersWidth, articlesWidth] })
-  table.push([{
-    colSpan: 2,
-    content: HELP.red,
-    hAlign: 'center'
-  }], ['#'.red, 'Article'.red])
-  articleSlice.forEach(article => {
+const formatArticles = (articles, timezone) => {
+  const table = new Table({
+    head: ['Articles'.bold],
+    colWidths: [DEFAULT_DISPLAY_WIDTH]
+  })
+  articles.forEach(article => {
     /**
      * We subtract 4 when calculating the space formatting for the text to
      * account for the table border and padding.
      */
-    const title = formatTextWrap(article.title, articlesWidth - 4).bold.cyan
+    const title = formatTextWrap(
+      article.title, DEFAULT_DISPLAY_WIDTH - 4).bold.cyan
     const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
-    const description = formatTextWrap(article.description, articlesWidth - 4)
+    const description = formatTextWrap(
+      article.description, DEFAULT_DISPLAY_WIDTH - 4)
     const url = String(article.url).underline.green
-    table.push([
-      (index++).toString().blue,
-      [title, date, description, url].join('\n')
-    ])
+    table.push([`${title}\n${date}\n${description}\n${url}`])
   })
-  table.push(getTableFooter(2))
-  if (maxWidth < WIDTH_WARNING_THRESHOLD) {
-    table.push([{
-      colSpan: 2,
-      content: formatTextWrap(WARNING, maxWidth).red,
-      hAlign: 'center'
-    }])
+  if (articles.length === 0) {
+    table.push(['No articles found on this topic.'])
   }
+  table.push(getTableFooter(1))
   return `${table.toString()}\n`
 }
 
