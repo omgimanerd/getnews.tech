@@ -9,7 +9,7 @@ const DB_URL = 'mongodb://localhost:27017'
 const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 
 const INVALID_QUERY = '\nInvalid query!\n' +
-  'Provide a keyword(s) to search for.\n'+
+  'Provide a keyword(s) to search for.\n' +
   'Ex: curl getnews.tech/american+politics\n'
 const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
 
@@ -84,7 +84,9 @@ app.get('/:query', async(request, response, next) => {
   try {
     const q = request.params.query.replace('+', ' ')
     const result = await api.v2.everything({ q })
-    const articles = result.articles
+    const articles = result.articles.sort((a, b) => {
+      return moment(a.publishedAt).diff(moment(b.publishedAt))
+    })
     const shortenedUrls = await Promise.all(articles.map(article => {
       return urlShortener.getShortenedUrl(client, article.url)
     }))
