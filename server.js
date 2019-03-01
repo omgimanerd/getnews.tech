@@ -8,7 +8,9 @@ const NEWS_API_KEY = process.env.NEWS_API_KEY
 const DB_URL = 'mongodb://localhost:27017'
 const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 
-const INVALID_QUERY = '\nInvalid query!\n'
+const INVALID_QUERY = '\nInvalid query!\n' +
+  'Provide a keyword(s) to search for.\n'+
+  'Ex: curl getnews.tech/american+politics\n'
 const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
 
 // Dependencies.
