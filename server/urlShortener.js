@@ -19,8 +19,9 @@ const EXPIRATION_TIME = 60 * 60 * 24 * 365
 const setup = async client => {
   const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
   try {
-    await collection.createIndex({ 'short': 1, url: 1 },
-      { unique: true, expireAfterSeconds: EXPIRATION_TIME, background: true })
+    await collection.createIndex(
+      { 'short': 1, url: 1 },
+      { unique: true, expireAfterSeconds: EXPIRATION_TIME })
   } catch (error) {
     if (error.code === 85 && error.codeName === 'IndexOptionsConflict') {
       return

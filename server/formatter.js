@@ -81,7 +81,6 @@ const formatMessage = message => {
   return `${table.toString()}\n`
 }
 
-
 /**
  * This function takes the array of article results returned from the News API
  * and formats it into a table for display in your terminal.

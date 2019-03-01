@@ -1,6 +1,6 @@
 /**
  * @fileoverview This is the server app script.
- * @author alvin.lin.dev@gmail.com (Alvin Lin)
+ * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
 const PORT = process.env.PORT || 5000
@@ -28,7 +28,6 @@ const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
 
-
 // Server initialization
 const client = new mongodb.MongoClient(DB_URL)
 // eslint-disable-next-line new-cap
@@ -53,14 +52,6 @@ app.use(loggers.analyticsLoggerMiddleware)
 app.use((request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
   next()
-})
-
-app.get('/analytics', (request, response, next) => {
-  if (request.isCurl) {
-    next()
-  } else {
-    response.status(201).render('analytics')
-  }
 })
 
 app.get('/s/:short', async(request, response, next) => {
