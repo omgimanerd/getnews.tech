@@ -54,7 +54,7 @@ curl getnews.tech/russia+alien+invasion
 ## Contributing
 Fork this repository and send me a pull request with any suggestions and
 changes. Use [ESLint](https://http://eslint.org/) to format your JavaScript
-using the `.eslintrc.js` file included in the repository.
+using the provided `.eslintrc.js` file.
 
 You will need to acquire an API Key from the [News API](https://newsapi.org/).
 Add them to your .bashrc or other environment variable configuration:

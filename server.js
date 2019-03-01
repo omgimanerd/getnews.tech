@@ -50,15 +50,14 @@ app.use(loggers.devLoggerMiddleware)
 app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
-  request.isCurl = (request.headers['user-agent'] || '').includes('curl')
-  next()
+  if (!(request.headers['user-agent'] || '').includes('curl')) {
+    response.redirect('https://github.com/omgimanerd/getnews.tech')
+  } else {
+    next()
+  }
 })
 
-app.get('/s/:short', async(request, response, next) => {
-  if (request.isCurl) {
-    next()
-    return
-  }
+app.get('/s/:short', async(request, response) => {
   try {
     const url = await urlShortener.getOriginalUrl(client, request.params.short)
     response.redirect(url)
