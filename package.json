@@ -13,12 +13,12 @@
     "colors": "^1.1.2",
     "express": "^4.16.4",
     "express-winston": "^2.6.0",
-    "iplocation": "^6.1.0",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.23",
     "mongodb": "^3.1.13",
     "nanoid": "^2.0.1",
     "newsapi": "^2.4.0",
+    "node-iplocate": "^1.0.1",
     "winston": "^2.4.4"
   },
   "devDependencies": {

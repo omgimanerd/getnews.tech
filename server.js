@@ -17,9 +17,9 @@ const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const express = require('express')
-const iplocation = require('iplocation').default
 const moment = require('moment-timezone')
 const mongodb = require('mongodb')
+const iplocate = require('node-iplocate')
 const newsapi = require('newsapi')
 const path = require('path')
 
@@ -81,8 +81,8 @@ app.get('/:query', async(request, response) => {
     articles.forEach((article, i) => { article.url = shortenedUrls[i] })
     let timezone = null
     try {
-      const locationData = await iplocation(request.headers['x-forwarded-for'])
-      timezone = locationData.timezone
+      const locationData = await iplocate(request.headers['x-forwarded-for'])
+      timezone = locationData.time_zone
     } catch (error) {
       timezone = moment.tz.guess()
     }
