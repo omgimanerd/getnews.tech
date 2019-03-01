@@ -53,24 +53,34 @@ app.use(loggers.devLoggerMiddleware)
 app.use(loggers.analyticsLoggerMiddleware)
 
 app.use((request, response, next) => {
-  if (!(request.headers['user-agent'] || '').includes('curl')) {
-    response.redirect(GITHUB_URL)
-  } else {
-    next()
-  }
+  request.isCurl = (request.headers['user-agent'] || '').includes('curl')
+  next()
 })
 
-app.get('/s/:short', async(request, response) => {
+app.get('/s/:short', async(request, response, next) => {
+  if (request.isCurl) {
+    next()
+    return
+  }
   try {
-    const url = await urlShortener.getOriginalUrl(client, request.params.short)
-    response.redirect(url)
+    const url = await urlShortener.getOriginalUrl(
+      client, request.params.short)
+    if (url === null) {
+      next()
+    } else {
+      response.redirect(url)
+    }
   } catch (error) {
     logError(error)
     response.status(500).send(INTERNAL_ERROR)
   }
 })
 
-app.get('/:query', async(request, response) => {
+app.get('/:query', async(request, response, next) => {
+  if (!request.isCurl) {
+    next()
+    return
+  }
   try {
     const q = request.params.query.replace('+', ' ')
     const result = await api.v2.everything({ q })
@@ -95,14 +105,22 @@ app.get('/:query', async(request, response) => {
 })
 
 app.use((request, response) => {
-  response.status(404).send(formatter.formatMessage(INVALID_QUERY.red))
+  if (request.isCurl) {
+    response.status(404).send(formatter.formatMessage(INVALID_QUERY.red))
+  } else {
+    response.redirect(GITHUB_URL)
+  }
 })
 
 // eslint-disable-next-line no-unused-vars
 app.use((error, request, response, next) => {
   logError(request)
   logError(error)
-  response.status(500).send(formatter.formatMessage(INTERNAL_ERROR.red))
+  if (request.isCurl) {
+    response.status(500).send(formatter.formatMessage(INTERNAL_ERROR.red))
+  } else {
+    response.redirect(GITHUB_URL)
+  }
 })
 
 // Starts the server.
