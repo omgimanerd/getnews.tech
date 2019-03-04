@@ -38,14 +38,14 @@ omgimanerd:~$ curl getnews.tech/trump
 │               https://github.com/omgimanerd/getnews.tech               │
 └────────────────────────────────────────────────────────────────────────┘
 ```
-This is a web server that formats the news from various sources on the web for
-display in the terminal. A link to each article is included if you want to read
-the full article.
+This is a web server that formats the news (primarily US based) from various
+sources on the web for display in the terminal. A link to each article is
+included if you want to read the full article.
 
 ## Usage
 You can fetch the latest news simply by typing  
 ```bash
-curl getnews.tech/<topic>
+curl getnews.tech
 curl getnews.tech/trump
 curl getnews.tech/world+cup
 curl getnews.tech/russia+alien+invasion

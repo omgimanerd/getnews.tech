@@ -87,7 +87,6 @@ const formatMessage = message => {
  * It assumes that the data has the fields outlined in the documentation
  * on the News API developer documentation, and that the url to the article
  * has also been shortened.
- * https://newsapi.org/#documentation
  * @param {Array<Object>} articles A list of articles returned by a query to
  *   the News API.
  * @param {string} timezone The timezone of the requesting IP address

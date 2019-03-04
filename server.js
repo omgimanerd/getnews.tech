@@ -52,9 +52,67 @@ app.use(loggers.devLoggerMiddleware)
 // Write more specific log information to the server log file
 app.use(loggers.analyticsLoggerMiddleware)
 
-app.use((request, response, next) => {
+app.use(async(request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
+  try {
+    const locationData = await iplocate(request.headers['x-forwarded-for'])
+    request.timezone = locationData.time_zone
+  } catch (error) {
+    request.timezone = moment.tz.guess()
+  }
   next()
+})
+
+/**
+ * Helper function to shorten the URLs in the articles returned from the
+ * News API.
+ * @param {Array<Object>} articles The articles with URLs to shorten
+ * @return {Array<Object>}
+ */
+const shortenArticleUrls = async articles => {
+  const sorted = articles.sort((a, b) => {
+    return moment(a.publishedAt).diff(moment(b.publishedAt))
+  })
+  const shortenedUrls = await Promise.all(sorted.map(article => {
+    return urlShortener.getShortenedUrl(client, article.url)
+  }))
+  return articles.map((article, i) => {
+    article.url = shortenedUrls[i]
+    return article
+  })
+}
+
+app.get('/', async(request, response, next) => {
+  if (!request.isCurl) {
+    next()
+    return
+  }
+  try {
+    const result = await api.v2.topHeadlines({ country: 'us' })
+    const articles = await shortenArticleUrls(result.articles)
+    const output = formatter.formatArticles(articles, request.timezone)
+    response.send(output)
+  } catch (error) {
+    logError(error)
+    response.status(500).send(INTERNAL_ERROR)
+  }
+})
+
+app.get('/:query', async(request, response, next) => {
+  if (!request.isCurl) {
+    next()
+    return
+  }
+  try {
+    const q = request.params.query.replace('+', ' ')
+    const result = await api.v2.everything({ q })
+    const articles = await shortenArticleUrls(result.articles)
+    const output = formatter.formatArticles(articles, request.timezone)
+    response.send(output)
+  } catch (error) {
+    logError(error)
+    response.status(500).send(INTERNAL_ERROR)
+  }
 })
 
 app.get('/s/:short', async(request, response, next) => {
@@ -70,36 +128,6 @@ app.get('/s/:short', async(request, response, next) => {
     } else {
       response.redirect(url)
     }
-  } catch (error) {
-    logError(error)
-    response.status(500).send(INTERNAL_ERROR)
-  }
-})
-
-app.get('/:query', async(request, response, next) => {
-  if (!request.isCurl) {
-    next()
-    return
-  }
-  try {
-    const q = request.params.query.replace('+', ' ')
-    const result = await api.v2.everything({ q })
-    const articles = result.articles.sort((a, b) => {
-      return moment(a.publishedAt).diff(moment(b.publishedAt))
-    })
-    const shortenedUrls = await Promise.all(articles.map(article => {
-      return urlShortener.getShortenedUrl(client, article.url)
-    }))
-    articles.forEach((article, i) => { article.url = shortenedUrls[i] })
-    let timezone = null
-    try {
-      const locationData = await iplocate(request.headers['x-forwarded-for'])
-      timezone = locationData.time_zone
-    } catch (error) {
-      timezone = moment.tz.guess()
-    }
-    const output = formatter.formatArticles(articles, timezone)
-    response.send(output)
   } catch (error) {
     logError(error)
     response.status(500).send(INTERNAL_ERROR)
