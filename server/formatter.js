@@ -103,10 +103,12 @@ const formatArticles = (articles, timezone) => {
      * account for the table border and padding.
      */
     const title = formatTextWrap(
-      article.title, DEFAULT_DISPLAY_WIDTH - 4).bold.cyan
+      `${article.source.name} - ${article.title}`,
+      DEFAULT_DISPLAY_WIDTH - 4).bold.cyan
     const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
     const description = formatTextWrap(
-      article.description, DEFAULT_DISPLAY_WIDTH - 4)
+      article.description || 'No description available.',
+      DEFAULT_DISPLAY_WIDTH - 4)
     const url = String(article.url).underline.green
     table.push([`${title}\n${date}\n${description}\n${url}`])
   })
