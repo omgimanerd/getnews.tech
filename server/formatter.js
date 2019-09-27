@@ -1,5 +1,5 @@
 /**
- * @fileoverview This is a class of static methods which will format the
+ * @fileoverview This file contains methods which will format the
  * data fetched from the News API into a nice looking table.
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
