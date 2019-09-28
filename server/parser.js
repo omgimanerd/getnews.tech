@@ -12,6 +12,25 @@ const VALID_FLAGS = [
   'reverse'
 ]
 
+const VALID_COUNTRIES = [
+  'ae', 'ar', 'at', 'au', 'be', 'bg', 'br', 'ca', 'ch', 'cn', 'co', 'cu', 'cz',
+  'de', 'eg', 'fr', 'gb', 'gr', 'hk', 'hu', 'id', 'ie', 'il', 'in', 'it', 'jp',
+  'kr', 'lt', 'lv', 'ma', 'mx', 'my', 'ng', 'nl', 'no', 'nz', 'ph', 'pl', 'pt',
+  'ro', 'rs', 'ru', 'sa', 'se', 'sg', 'si', 'sk', 'th', 'tr', 'tw', 'ua', 'us',
+  've', 'za'
+]
+
+const parseSubdomain = subdomains => {
+  if (subdomains.length == 0) {
+    return null
+  }
+  const country = subdomains[subdomains.length - 1]
+  if (VALID_COUNTRIES.includes(country)) {
+    return country
+  }
+  return null
+}
+
 /**
  * This method deconstructs an argument string into a JSON object containing
  * the argument data.
@@ -32,10 +51,10 @@ const parseArgs = argString => {
     if (parts.length == 1) {
     } else if (parts.length == 2) {
     } else {
-      
+
     }
 
-    
+
     if (parts.length != 2) {
         args.set('error', `Unable to parse ${chunk}`)
         return
@@ -58,4 +77,7 @@ const parseArgs = argString => {
   return args
 }
 
-console.log(parseArgs('trump,n=2,flag,order=10'))
+module.exports = exports = {
+  parseSubdomain,
+  parseArgs
+}

@@ -27,16 +27,17 @@ const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
 const formatter = require('./server/formatter')
+const parser = require('./server/parseSubdomain')
 const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
+
 
 // Server initialization
 const client = new mongodb.MongoClient(DB_URL)
 // eslint-disable-next-line new-cap
 const api = new newsapi(NEWS_API_KEY)
 const app = express()
-
 
 app.set('port', PORT)
 app.set('view engine', 'pug')
@@ -54,6 +55,7 @@ app.use(loggers.analyticsLoggerMiddleware)
 
 app.use(async(request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
+  request.country = parser.parseSubdomain(request.subdomains)
   try {
     const locationData = await iplocate(request.headers['x-forwarded-for'])
     request.timezone = locationData.time_zone
