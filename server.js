@@ -27,7 +27,7 @@ const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
 const formatter = require('./server/formatter')
-const parser = require('./server/parseSubdomain')
+const parser = require('./server/parser')
 const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
