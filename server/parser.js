@@ -39,39 +39,33 @@ const parseSubdomain = subdomains => {
  */
 const parseArgs = argString => {
   const args = new Map()
+  const setError = error => {
+    if (!args.has('error')) {
+      args.set('error', error)
+    }
+  }
   argString.split(',').forEach((chunk, index) => {
-    chunk = chunk.trim()
-    if (index == 0) {
+    if (index == 0 && !chunk.includes('=')) {
       args.set('query', chunk)
       return
     }
     const parts = chunk.split('=')
-    let arg = parts[0]
-    let value = null
+    const arg = parts[0]
     if (parts.length == 1) {
-    } else if (parts.length == 2) {
-    } else {
-
-    }
-
-
-    if (parts.length != 2) {
-        args.set('error', `Unable to parse ${chunk}`)
+      if (!VALID_FLAGS.includes(arg)) {
+        setError(`\"${arg}\" is not a valid flag`)
         return
       }
-      const arg = parts[0]
-      if (!VALID_ARGS.includes(arg)) {
-        args.set('error', `${arg} is not a valid argument`)
-      }
+      args.set(arg, true)
+    } else if (parts.length == 2) {
       const value = parts[1]
-      const attemptParseValue = parseInt(value, 10)
-      if (attemptParseValue == NaN) {
-        args.set(arg, value)
-      } else {
-        args.set(arg, attemptParseValue)
+      if (!VALID_ARGS.includes(arg)) {
+        setError(`\"${arg}\" is not a valid argument`)
+        return
       }
+      args.set(arg, value)
     } else {
-      args.set(chunk, true)
+      setError(`Unable to parse ${chunk}`)
     }
   })
   return args

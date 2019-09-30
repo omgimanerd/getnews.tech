@@ -27,7 +27,7 @@ const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
 const formatter = require('./server/formatter')
-const parser = require('./server/parseSubdomain')
+const parser = require('./server/parser')
 const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
@@ -89,15 +89,6 @@ app.get('/', async(request, response, next) => {
     next()
     return
   }
-  try {
-    const result = await api.v2.topHeadlines({ country: 'us' })
-    const articles = await shortenArticleUrls(result.articles)
-    const output = formatter.formatArticles(articles, request.timezone)
-    response.send(output)
-  } catch (error) {
-    logError(error)
-    response.status(500).send(INTERNAL_ERROR)
-  }
 })
 
 app.get('/:query', async(request, response, next) => {
@@ -105,8 +96,12 @@ app.get('/:query', async(request, response, next) => {
     next()
     return
   }
+  const query = request.params.query
   try {
-    const q = request.params.query.replace('+', ' ')
+    console.log(request.country)
+    console.log(parser.parseArgs(query))
+    response.send('done')
+    return
     const result = await api.v2.everything({ q })
     const articles = await shortenArticleUrls(result.articles)
     const output = formatter.formatArticles(articles, request.timezone)
