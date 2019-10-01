@@ -132,6 +132,10 @@ app.get('/:query', async(request, response, next) => {
     return
   }
   const args = parser.parseArgs(request.params.query)
+  if (args.query === ':help') {
+    response.send(formatter.formatHelp())
+    return
+  }
   if (args.error) {
     response.status(401).send(formatter.formatMessage(args.error))
     return

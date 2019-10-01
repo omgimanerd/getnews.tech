@@ -16,6 +16,9 @@ const VALID_COUNTRIES = [
   've', 'za'
 ]
 
+const VALID_CATEGORIES = [
+]
+
 /**
  * Given an array of subdomains from the express request context, this method
  * checks if there is a country specified, if it is valid, and returns the
@@ -52,18 +55,20 @@ const parseArgs = argString => {
     if (parts.length === 2) {
       const value = parts[1]
       if (!VALID_ARGS.includes(arg)) {
-        args.error = `"${arg}" is not a valid argument`
+        args.error = `"${arg}" is not a valid argument.`
         return
       }
       args[arg] = value
     } else {
-      args.error = `Unable to parse ${chunk}`
+      args.error = `Unable to parse ${chunk}.`
     }
   })
   return args
 }
 
 module.exports = exports = {
+  VALID_COUNTRIES,
+  VALID_CATEGORIES,
   parseSubdomain,
   parseArgs
 }

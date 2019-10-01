@@ -9,12 +9,14 @@ const colors = require('colors')
 const moment = require('moment-timezone')
 const Table = require('cli-table3')
 
+const parser = require('./parser')
+
 /**
  * The default number of characters for formatting the table width.
  * @const
  * @type {number}
  */
-const DEFAULT_DISPLAY_WIDTH = 72
+const DEFAULT_DISPLAY_WIDTH = 80
 
 /**
  * This method returns the table footer that is appended to every output
@@ -95,7 +97,8 @@ const formatMessage = message => {
 const formatArticles = (articles, timezone) => {
   const table = new Table({
     head: ['Articles'.bold],
-    colWidths: [DEFAULT_DISPLAY_WIDTH]
+    // Subtract 2 to account for table border
+    colWidths: [DEFAULT_DISPLAY_WIDTH - 2]
   })
   articles.forEach(article => {
     /**
@@ -119,7 +122,24 @@ const formatArticles = (articles, timezone) => {
   return `${table.toString()}\n`
 }
 
+const formatHelp = () => {
+  const table = new Table({
+    head: ['Help'.bold],
+    // Subtract 2 to account for table border
+    colWidths: [DEFAULT_DISPLAY_WIDTH - 2],
+  })
+  const coloredQuery = `${'country'.blue}.getnews.tech/${'query'.green}`
+  const usage = `\nUsage: curl ${coloredQuery},arg=value,arg=value\n\n`
+  const countryString = parser.VALID_COUNTRIES.join(', ').blue
+  const countries = formatTextWrap(`Valid countries: ${countryString}`,
+                                   DEFAULT_DISPLAY_WIDTH - 4)
+  table.push([usage + countries])
+  table.push(getTableFooter(1))
+  return `${table.toString()}\n`  
+}
+
 module.exports = exports = {
   formatMessage,
-  formatArticles
+  formatArticles,
+  formatHelp
 }
