@@ -116,14 +116,9 @@ app.get('/', async(request, response, next) => {
     next()
     return
   }
-  try {
-    const output = await getArticles(
-      request.country, 'general', null, null, null, request.timezone)
-    response.send(output)
-  } catch (error) {
-    logError(error)
-    response.status(500).send(INTERNAL_ERROR)
-  }
+  const output = await getArticles(
+    request.country, 'general', null, null, null, request.timezone)
+  response.send(output)
 })
 
 app.get('/:query', async(request, response, next) => {
@@ -140,30 +135,22 @@ app.get('/:query', async(request, response, next) => {
     response.status(401).send(formatter.formatMessage(args.error))
     return
   }
-  try {
-    const output = await getArticles(
-      request.country, args.category, args.query, args.n, args.page,
-      request.timezone)
-    response.send(output)
-  } catch (error) {
-    logError(error)
-    response.status(500).send(INTERNAL_ERROR)
-  }
+  const output = await getArticles(
+    request.country, args.category, args.query, args.n, args.page,
+    request.timezone)
+  response.send(output)
 })
 
-app.get('/s/:short', async(request, response, next) => {
-  try {
-    const url = await urlShortener.getOriginalUrl(client, request.params.short)
-    if (url === null) {
-      next()
-    } else if (request.isCurl) {
-      response.send(url)
-    } else {
-      response.redirect(url)
-    }
-  } catch (error) {
-    logError(error)
-    response.status(500).send(INTERNAL_ERROR)
+app.get('/s/:shortlink', async(request, response, next) => {
+  const shortlink = request.params.shortlink
+  const url = await urlShortener.getOriginalUrl(client, shortlink)
+  if (url === null) {
+    const error = `Could not find URL for shortlink /${shortlink}`.red
+    response.send(formatter.formatMessage(error))
+  } else if (request.isCurl) {
+    response.send(url)
+  } else {
+    response.redirect(url)
   }
 })
 

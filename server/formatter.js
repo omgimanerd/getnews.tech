@@ -1,6 +1,7 @@
 /**
  * @fileoverview This file contains methods which will format the
- * data fetched from the News API into a nice looking table.
+ * data fetched from the News API into nice looking tables for
+ * output in terminal.
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
@@ -73,10 +74,13 @@ const formatDate = date => {
  * @param {boolean} message The message to display
  * @return {string}
  */
-const formatMessage = message => {
-  const table = new Table()
+const formatMessage = (message, head) => {
+  const table = new Table({
+    head: head ? [head] : null,
+    colWidths: [DEFAULT_DISPLAY_WIDTH - 2]
+  })
   table.push([{
-    content: message,
+    content: `\n${message}\n`,
     hAlign: 'center'
   }])
   table.push(getTableFooter(1))
