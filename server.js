@@ -11,7 +11,7 @@ const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 const INVALID_QUERY = '\nInvalid query!\n' +
   'Provide a keyword(s) to search for.\n' +
   'Ex: curl getnews.tech/american+politics\n'
-const INTERNAL_ERROR = '\nAn error occurred! Please try again in a bit.\n'
+const INTERNAL_ERROR = 'An error occurred! Please try again in a bit.\n'.red
 
 // Dependencies.
 // eslint-disable-next-line no-unused-vars
@@ -84,10 +84,45 @@ const shortenArticleUrls = async articles => {
   })
 }
 
+/**
+ * Given the API arguments to the News API, this helper function fetches
+ * top headlines corresponding to those arguments and runs the URL shortener
+ * and article formatter on them, returning the output table.
+ * @param {string} country The country to query results for
+ * @param {string} category The news category to query results for
+ * @param {string} q The query string to search for results with
+ * @param {number} pageSize The number of entries to show per page
+ * @param {number} page The results page to return
+ * @param {string} timezone The timezone to format the results with
+ * @return {string}
+ */
+const getArticles = async(country, category, q, pageSize, page, timezone) => {
+  const result = await api.v2.topHeadlines({
+    country: country ? country : '',
+    category: category ? category : '',
+    q: q ? q : '',
+    pageSize: pageSize ? pageSize : 20,
+    page: page ? page : 1
+  })
+  if (!result.articles) {
+    return []
+  }
+  const articles = await shortenArticleUrls(result.articles)
+  return formatter.formatArticles(articles, timezone)
+}
+
 app.get('/', async(request, response, next) => {
   if (!request.isCurl) {
     next()
     return
+  }
+  try {
+    const output = await getArticles(
+      request.country, 'general', null, null, null, request.timezone)
+    response.send(output)
+  } catch (error) {
+    logError(error)
+    response.status(500).send(INTERNAL_ERROR)
   }
 })
 
@@ -96,18 +131,15 @@ app.get('/:query', async(request, response, next) => {
     next()
     return
   }
-  const query = request.params.query
-  try {
-    console.log(request.country)
-    console.log(parser.parseArgs(query))
-    response.send('done')
+  const args = parser.parseArgs(request.params.query)
+  if (args.error) {
+    response.status(401).send(formatter.formatMessage(args.error))
     return
-    const result = await api.v2.everything({
-      country: request.country
-      q
-    })
-    const articles = await shortenArticleUrls(result.articles)
-    const output = formatter.formatArticles(articles, request.timezone)
+  }
+  try {
+    const output = await getArticles(
+      request.country, args.category, args.query, args.n, args.page,
+      request.timezone)
     response.send(output)
   } catch (error) {
     logError(error)
@@ -116,15 +148,12 @@ app.get('/:query', async(request, response, next) => {
 })
 
 app.get('/s/:short', async(request, response, next) => {
-  if (request.isCurl) {
-    next()
-    return
-  }
   try {
-    const url = await urlShortener.getOriginalUrl(
-      client, request.params.short)
+    const url = await urlShortener.getOriginalUrl(client, request.params.short)
     if (url === null) {
       next()
+    } else if (request.isCurl) {
+      response.send(url)
     } else {
       response.redirect(url)
     }
@@ -147,7 +176,7 @@ app.use((error, request, response, next) => {
   logError(request)
   logError(error)
   if (request.isCurl) {
-    response.status(500).send(formatter.formatMessage(INTERNAL_ERROR.red))
+    response.status(500).send(INTERNAL_ERROR)
   } else {
     response.redirect(GITHUB_URL)
   }

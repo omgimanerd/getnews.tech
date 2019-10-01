@@ -5,11 +5,7 @@
  */
 
 const VALID_ARGS = [
-  'n', 'page', 'i'
-]
-
-const VALID_FLAGS = [
-  'reverse'
+  'n', 'page', 'category'
 ]
 
 const VALID_COUNTRIES = [
@@ -20,6 +16,13 @@ const VALID_COUNTRIES = [
   've', 'za'
 ]
 
+/**
+ * Given an array of subdomains from the express request context, this method
+ * checks if there is a country specified, if it is valid, and returns the
+ * country.
+ * @param {Array<string>} subdomains The array of subdomains to parse
+ * @return {string}
+ */
 const parseSubdomain = subdomains => {
   if (subdomains.length === 0) {
     return null
@@ -38,29 +41,23 @@ const parseSubdomain = subdomains => {
  * @return {Object}
  */
 const parseArgs = argString => {
-  const args = new Map()
+  const args = {}
   argString.split(',').forEach((chunk, index) => {
     if (index === 0 && !chunk.includes('=')) {
-      args.set('query', chunk)
+      args.query = chunk.replace('+', ' ')
       return
     }
     const parts = chunk.split('=')
     const arg = parts[0]
-    if (parts.length === 1) {
-      if (!VALID_FLAGS.includes(arg)) {
-        args.set('error', `"${arg}" is not a valid flag`)
-        return
-      }
-      args.set(arg, true)
-    } else if (parts.length === 2) {
+    if (parts.length === 2) {
       const value = parts[1]
       if (!VALID_ARGS.includes(arg)) {
-        args.set('error', `"${arg}" is not a valid argument`)
+        args.error = `"${arg}" is not a valid argument`
         return
       }
-      args.set(arg, value)
+      args[arg] = value
     } else {
-      args.set('error', `Unable to parse ${chunk}`)
+      args.error = `Unable to parse ${chunk}`
     }
   })
   return args
