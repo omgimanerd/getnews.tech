@@ -5,7 +5,7 @@
  */
 
 const VALID_ARGS = [
-  'n', 'w', 'i'
+  'n', 'page', 'i'
 ]
 
 const VALID_FLAGS = [
@@ -21,7 +21,7 @@ const VALID_COUNTRIES = [
 ]
 
 const parseSubdomain = subdomains => {
-  if (subdomains.length == 0) {
+  if (subdomains.length === 0) {
     return null
   }
   const country = subdomains[subdomains.length - 1]
@@ -38,43 +38,32 @@ const parseSubdomain = subdomains => {
  * @return {Object}
  */
 const parseArgs = argString => {
-  // const args = new Map()
-  // argString.split(',').forEach((chunk, index) => {
-  //   chunk = chunk.trim()
-  //   if (index == 0) {
-  //     args.set('query', chunk)
-  //     return
-  //   }
-  //   const parts = chunk.split('=')
-  //   let arg = parts[0]
-  //   let value = null
-  //   if (parts.length == 1) {
-  //   } else if (parts.length == 2) {
-  //   } else {
-  //
-  //   }
-  //
-  //
-  //   if (parts.length != 2) {
-  //       args.set('error', `Unable to parse ${chunk}`)
-  //       return
-  //     }
-  //     const arg = parts[0]
-  //     if (!VALID_ARGS.includes(arg)) {
-  //       args.set('error', `${arg} is not a valid argument`)
-  //     }
-  //     const value = parts[1]
-  //     const attemptParseValue = parseInt(value, 10)
-  //     if (attemptParseValue == NaN) {
-  //       args.set(arg, value)
-  //     } else {
-  //       args.set(arg, attemptParseValue)
-  //     }
-  //   } else {
-  //     args.set(chunk, true)
-  //   }
-  // })
-  // return args
+  const args = new Map()
+  argString.split(',').forEach((chunk, index) => {
+    if (index === 0 && !chunk.includes('=')) {
+      args.set('query', chunk)
+      return
+    }
+    const parts = chunk.split('=')
+    const arg = parts[0]
+    if (parts.length === 1) {
+      if (!VALID_FLAGS.includes(arg)) {
+        args.set('error', `"${arg}" is not a valid flag`)
+        return
+      }
+      args.set(arg, true)
+    } else if (parts.length === 2) {
+      const value = parts[1]
+      if (!VALID_ARGS.includes(arg)) {
+        args.set('error', `"${arg}" is not a valid argument`)
+        return
+      }
+      args.set(arg, value)
+    } else {
+      args.set('error', `Unable to parse ${chunk}`)
+    }
+  })
+  return args
 }
 
 module.exports = exports = {
