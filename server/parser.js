@@ -37,7 +37,9 @@ const parseSubdomain = subdomains => {
     return null
   }
   const country = subdomains[subdomains.length - 1]
-  if (!VALID_COUNTRIES.includes(country)) {
+  if (country === 'dev') {
+    return null
+  } else if (!VALID_COUNTRIES.includes(country)) {
     throw new RecoverableError(`${country} is not a valid country to query.`)
   }
   return country
