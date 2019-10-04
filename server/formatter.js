@@ -127,10 +127,10 @@ const formatArticles = (articles, timezone) => {
 const formatHelp = () => {
   return formatTable('Help'.bold, table => {
     table.push([[
-      '\n',
+      '',
       // Query syntax
-      `Usage: curl ${'[country]'.blue}.getnews.tech/${'[query,]'.green}` +
-        `${'arg'.yellow}=value,${'arg'.yellow}=value`,
+      `Usage: curl ${'[country]'.blue}.getnews.tech/` +
+        `${'[query,]'.green}${'arg'.yellow}=value,${'arg'.yellow}=value`,
       '\n',
       // Valid countries
       formatTextWrap(
@@ -151,9 +151,10 @@ const formatHelp = () => {
       '    curl getnews.tech/trump',
       '    curl getnews.tech/mass+shooting,pageSize=20',
       '    curl at.getnews.tech/category=business',
-      '    curl us.getnews.tech/category=general,pageSize=5',
-      '    firefox getnews.tech/s/a8U2jf',
-      '\n'
+      '    curl us.getnews.tech/category=general,page=2',
+      '',
+      '    firefox getnews.tech/s/t8wAWZW0',
+      ''
     ].join('\n')])
   })
 }
@@ -172,9 +173,10 @@ const formatError = error => {
   } else {
     message = 'An error occurred on our end. Please try again later.'
   }
+  const help = 'curl getnews.tech/:help'
   return formatTable(null, table => {
     table.push([{
-      content: message,
+      content: `\n${message}\n\n${help.red}\n`,
       hAlign: 'center'
     }])
   })
