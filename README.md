@@ -46,9 +46,13 @@ included if you want to read the full article.
 You can fetch the latest news simply by typing  
 ```bash
 curl getnews.tech
-curl getnews.tech/trump
-curl getnews.tech/world+cup
-curl getnews.tech/russia+alien+invasion
+curl us.getnews.tech/trump
+curl fr.getnews.tech/world+cup
+curl gr.getnews.tech/category=business
+```
+For additional options:
+```bash
+curl getnews.tech/:help
 ```
 
 ## Contributing
