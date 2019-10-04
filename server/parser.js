@@ -4,8 +4,12 @@
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
+const errors = require('./errors')
+
+const RecoverableError = errors.RecoverableError
+
 const VALID_ARGS = [
-  'n', 'page', 'category'
+  'page', 'pageSize', 'category'
 ]
 
 const VALID_COUNTRIES = [
@@ -37,6 +41,12 @@ const parseSubdomain = subdomains => {
   return null
 }
 
+const validateArgs = (arg, value) => {
+  if (!VALID_ARGS.includes(arg)) {
+    throw new RecoverableError(`"${arg}" is not a valid argument.`)
+  }
+}
+
 /**
  * This method deconstructs an argument string into a JSON object containing
  * the argument data.
@@ -54,13 +64,10 @@ const parseArgs = argString => {
     const arg = parts[0]
     if (parts.length === 2) {
       const value = parts[1]
-      if (!VALID_ARGS.includes(arg)) {
-        args.error = `"${arg}" is not a valid argument.`
-        return
-      }
+      validateArgs(arg, value)
       args[arg] = value
     } else {
-      args.error = `Unable to parse ${chunk}.`
+      throw new RecoverableError(`Unable to parse ${chunk}`)
     }
   })
   return args

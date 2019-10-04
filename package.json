@@ -12,6 +12,7 @@
     "cli-table3": "^0.5.1",
     "colors": "^1.1.2",
     "express": "^4.16.4",
+    "express-async-handler": "^1.1.4",
     "express-winston": "^2.6.0",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.23",

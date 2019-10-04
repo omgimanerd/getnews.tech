@@ -6,7 +6,7 @@
 const chai = require('chai')
 const moment = require('moment')
 
-chai.should()
+const expect = chai.expect
 
 const formatter = require('../server/formatter')
 
@@ -44,25 +44,6 @@ describe('formatter.js', () => {
     })
   })
 
-  describe('formatSources()', () => {
-    it('should run without breaking', () => {
-      // eslint-disable-next-line no-unused-expressions
-      formatter.formatSources([
-        {
-          id: 'id1',
-          name: 'name1',
-          description: 'description1',
-          url: 'url1'
-        }, {
-          id: 'id2',
-          name: 'name2',
-          description: 'description2',
-          url: 'url2'
-        }
-      ], {}).should.be.ok
-    })
-  })
-
   describe('formatDate()', () => {
     it('should properly format valid inputs', () => {
       const d1 = moment(100)
@@ -87,17 +68,23 @@ describe('formatter.js', () => {
       // eslint-disable-next-line no-unused-expressions
       formatter.formatArticles([
         {
+          source: {
+            name: 'source1'
+          },
           title: 'title1',
           publishedAt: 100,
           description: 'description1',
           url: 'url1'
         }, {
+          source: {
+            name: 'source2'
+          },
           title: 'title2',
           publishedAt: 200,
           description: 'description2',
           url: 'url2'
         }
-      ], null, {}).should.be.ok
+      ], null).should.be.ok
     })
   })
 })

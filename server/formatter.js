@@ -20,29 +20,24 @@ const parser = require('./parser')
 const DEFAULT_DISPLAY_WIDTH = 80
 
 /**
- * This method returns the table footer that is appended to every output
- * Table.
- * @param {number} colSpan The number of columns the footer should span.
- * @return {Array<Object>}
- */
-const getTableFooter = colSpan => [{
-  colSpan: colSpan,
-  content: 'Powered by the News API (https://newsapi.org).\n'.green +
-      'Follow '.green + '@omgimanerd '.blue +
-      'on Twitter and GitHub.\n'.green +
-      'Open source contributions are welcome!\n'.green +
-      'https://github.com/omgimanerd/getnews.tech'.underline.blue,
-  hAlign: 'center'
-}]
-
-/**
  * This method takes a string of text and separates it into lines of text
- * all of which are shorter than a given maximum line length.
+ * all of which are shorter than a given maximum line length. This will
+ * strip all whitespace from the text, including indents, to respace the
+ * text.
  * @param {string} text The text to format.
- * @param {number} maxLineLength The maximum length of each line.
+ * @param {number} maxLineLength The maximum length of each line. Defaults to
+ *   DEFAULT_DISPLAY_WIDTH - 4
  * @return {string}
  */
 const formatTextWrap = (text, maxLineLength) => {
+  /**
+   * We subtract 4 when calculating the space formatting for the text to
+   * account for the table border and padding. This assumes a single column
+   * table where the text runs edge to edge.
+   */
+  if (!maxLineLength) {
+    maxLineLength = DEFAULT_DISPLAY_WIDTH - 4
+  }
   const words = String(text).trim().replace(/[\s]+/g, ' ').split(' ')
   let lineLength = 0
   return words.reduce((result, word) => {
@@ -69,22 +64,22 @@ const formatDate = date => {
   return 'Publication date not available'
 }
 
-/**
- * This method formats and returns miscellaneous messages.
- * @param {boolean} message The message to display
- * @return {string}
- */
-const formatMessage = (message, head) => {
+const formatTable = (head, fn) => {
   const table = new Table({
-    head: head ? [head] : null,
+    head: [head],
+    // Subtract 2 to account for table border
     colWidths: [DEFAULT_DISPLAY_WIDTH - 2]
   })
+  fn(table)
   table.push([{
-    content: `\n${message}\n`,
+    content: 'Powered by the News API (https://newsapi.org).\n'.green +
+      'Follow '.green + '@omgimanerd '.blue +
+      'on Twitter and GitHub.\n'.green +
+      'Open source contributions are welcome!\n'.green +
+      'https://github.com/omgimanerd/getnews.tech'.underline.blue,
     hAlign: 'center'
   }])
-  table.push(getTableFooter(1))
-  return `${table.toString()}\n`
+  return table.toString() + '\n'
 }
 
 /**
@@ -99,51 +94,66 @@ const formatMessage = (message, head) => {
  * @return {string}
  */
 const formatArticles = (articles, timezone) => {
-  const table = new Table({
-    head: ['Articles'.bold],
-    // Subtract 2 to account for table border
-    colWidths: [DEFAULT_DISPLAY_WIDTH - 2]
+  return formatTable('Articles'.bold, table => {
+    articles.forEach(article => {
+      const title = formatTextWrap(
+        `${article.source.name} - ${article.title}`).bold.cyan
+      const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
+      const description = formatTextWrap(
+        article.description || 'No description available.')
+      const url = String(article.url).underline.green
+      table.push([`${title}\n${date}\n${description}\n${url}`])
+    })
+    if (articles.length === 0) {
+      table.push(['No articles found on this topic.'])
+    }
   })
-  articles.forEach(article => {
-    /**
-     * We subtract 4 when calculating the space formatting for the text to
-     * account for the table border and padding.
-     */
-    const title = formatTextWrap(
-      `${article.source.name} - ${article.title}`,
-      DEFAULT_DISPLAY_WIDTH - 4).bold.cyan
-    const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
-    const description = formatTextWrap(
-      article.description || 'No description available.',
-      DEFAULT_DISPLAY_WIDTH - 4)
-    const url = String(article.url).underline.green
-    table.push([`${title}\n${date}\n${description}\n${url}`])
-  })
-  if (articles.length === 0) {
-    table.push(['No articles found on this topic.'])
-  }
-  table.push(getTableFooter(1))
-  return `${table.toString()}\n`
 }
 
 const formatHelp = () => {
-  const table = new Table({
-    head: ['Help'.bold],
-    // Subtract 2 to account for table border
-    colWidths: [DEFAULT_DISPLAY_WIDTH - 2],
+  return formatTable('Help'.bold, table => {
+    table.push([[
+      '\n',
+      // Query syntax
+      `Usage: curl ${'[country]'.blue}.getnews.tech/${'[query,]'.green}` +
+        `${'arg'.yellow}=value,${'arg'.yellow}=value`,
+      '\n',
+      // Valid countries
+      formatTextWrap(
+        `Valid countries: ${parser.VALID_COUNTRIES.join(', ').blue}`),
+      '\n',
+      // Valid arguments
+      'Valid arguments:',
+      `    ${'n'.yellow}: number of results per page`,
+      `    ${'page'.yellow}: page number to fetch`,
+      `    ${'category'.yellow}: news category to fetch`,
+      '\n',
+      // Valid categories to query
+      formatTextWrap(
+        `Valid categories: ${parser.VALID_CATEGORIES.join(', ')}`),
+      '\n',
+      // Example queries
+      'Example queries:',
+      '    curl getnews.tech/trump',
+      '    curl getnews.tech/mass+shooting,pageSize=20',
+      '    curl at.getnews.tech/category=business',
+      '    curl us.getnews.tech/category=general,pageSize=5',
+      '    firefox getnews.tech/s/a8U2jf',
+      '\n'
+    ].join('\n')])
   })
-  const coloredQuery = `${'country'.blue}.getnews.tech/${'query'.green}`
-  const usage = `\nUsage: curl ${coloredQuery},arg=value,arg=value\n\n`
-  const countryString = parser.VALID_COUNTRIES.join(', ').blue
-  const countries = formatTextWrap(`Valid countries: ${countryString}`,
-                                   DEFAULT_DISPLAY_WIDTH - 4)
-  table.push([usage + countries])
-  table.push(getTableFooter(1))
-  return `${table.toString()}\n`  
+}
+
+const formatError = error => {
+  return formatTable(null, table => {
+    table.push([error.message])
+  })
 }
 
 module.exports = exports = {
-  formatMessage,
+  formatTextWrap,
+  formatDate,
   formatArticles,
-  formatHelp
+  formatHelp,
+  formatError
 }

@@ -8,35 +8,33 @@ const NEWS_API_KEY = process.env.NEWS_API_KEY
 const DB_URL = 'mongodb://localhost:27017'
 const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 
-const INVALID_QUERY = '\nInvalid query!\n' +
-  'Provide a keyword(s) to search for.\n' +
-  'Ex: curl getnews.tech/american+politics\n'
-const INTERNAL_ERROR = 'An error occurred! Please try again in a bit.\n'.red
-
 // Dependencies.
+const asyncHandler = require('express-async-handler')
 // eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const express = require('express')
 const moment = require('moment-timezone')
 const mongodb = require('mongodb')
 const iplocate = require('node-iplocate')
-const newsapi = require('newsapi')
 const path = require('path')
+
+const NewsApi = require('newsapi')
 
 const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
+const errors = require('./server/errors')
 const formatter = require('./server/formatter')
 const parser = require('./server/parser')
 const loggers = require('./server/loggers')({ analyticsFile, errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
 
+const RecoverableError = errors.RecoverableError
 
 // Server initialization
 const client = new mongodb.MongoClient(DB_URL)
-// eslint-disable-next-line new-cap
-const api = new newsapi(NEWS_API_KEY)
+const api = new NewsApi(NEWS_API_KEY)
 const app = express()
 
 app.set('port', PORT)
@@ -53,7 +51,7 @@ app.use(loggers.devLoggerMiddleware)
 // Write more specific log information to the server log file
 app.use(loggers.analyticsLoggerMiddleware)
 
-app.use(async(request, response, next) => {
+app.use(asyncHandler(async(request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
   request.country = parser.parseSubdomain(request.subdomains)
   try {
@@ -63,7 +61,7 @@ app.use(async(request, response, next) => {
     request.timezone = moment.tz.guess()
   }
   next()
-})
+}))
 
 /**
  * Helper function to shorten the URLs in the articles returned from the
@@ -111,7 +109,7 @@ const getArticles = async(country, category, q, pageSize, page, timezone) => {
   return formatter.formatArticles(articles, timezone)
 }
 
-app.get('/', async(request, response, next) => {
+app.get('/', asyncHandler(async(request, response, next) => {
   if (!request.isCurl) {
     next()
     return
@@ -119,9 +117,9 @@ app.get('/', async(request, response, next) => {
   const output = await getArticles(
     request.country, 'general', null, null, null, request.timezone)
   response.send(output)
-})
+}))
 
-app.get('/:query', async(request, response, next) => {
+app.get('/:query', asyncHandler(async(request, response, next) => {
   if (!request.isCurl) {
     next()
     return
@@ -132,42 +130,38 @@ app.get('/:query', async(request, response, next) => {
     return
   }
   if (args.error) {
-    response.status(401).send(formatter.formatMessage(args.error))
-    return
+    throw new RecoverableError(args.error)
   }
   const output = await getArticles(
     request.country, args.category, args.query, args.n, args.page,
     request.timezone)
   response.send(output)
-})
+}))
 
-app.get('/s/:shortlink', async(request, response, next) => {
+app.get('/s/:shortlink', asyncHandler(async(request, response, next) => {
   const shortlink = request.params.shortlink
   const url = await urlShortener.getOriginalUrl(client, shortlink)
   if (url === null) {
-    const error = `Could not find URL for shortlink /${shortlink}`.red
-    response.send(formatter.formatMessage(error))
+    throw new RecoverableError(
+      `Could not find URL for shortlink /${shortlink}`)
   } else if (request.isCurl) {
     response.send(url)
   } else {
     response.redirect(url)
   }
-})
-
-app.use((request, response) => {
-  if (request.isCurl) {
-    response.status(404).send(formatter.formatMessage(INVALID_QUERY.red))
-  } else {
-    response.redirect(GITHUB_URL)
-  }
-})
+}))
 
 // eslint-disable-next-line no-unused-vars
 app.use((error, request, response, next) => {
   logError(request)
   logError(error)
   if (request.isCurl) {
-    response.status(500).send(INTERNAL_ERROR)
+    if (error instanceof RecoverableError) {
+      response.status(401).send(formatter.formatError(error))
+    } else {
+      response.status(500).send(
+        'An error occurred on our end. Please try again later.\n'.red)
+    }
   } else {
     response.redirect(GITHUB_URL)
   }
