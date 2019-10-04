@@ -21,6 +21,7 @@ describe('parser.js', () => {
     it('should work with valid regular input', () => {
       expect(fn(['dev', 'eg'])).to.equal('eg')
       expect(fn(['us'])).to.equal('us')
+      expect(fn(['dev'])).to.be.null
     })
 
     it('should throw with invalid regular input', () => {
