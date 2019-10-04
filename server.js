@@ -56,8 +56,10 @@ app.use(asyncHandler(async(request, response, next) => {
   request.country = parser.parseSubdomain(request.subdomains)
   try {
     const locationData = await iplocate(request.headers['x-forwarded-for'])
+    // eslint-disable-next-line require-atomic-updates
     request.timezone = locationData.time_zone
   } catch (error) {
+  // eslint-disable-next-line require-atomic-updates
     request.timezone = moment.tz.guess()
   }
   next()
@@ -133,17 +135,17 @@ app.get('/:query', asyncHandler(async(request, response, next) => {
     throw new RecoverableError(args.error)
   }
   const output = await getArticles(
-    request.country, args.category, args.query, args.n, args.page,
+    request.country, args.category, args.query, args.pageSize, args.page,
     request.timezone)
   response.send(output)
 }))
 
-app.get('/s/:shortlink', asyncHandler(async(request, response, next) => {
+app.get('/s/:shortlink', asyncHandler(async(request, response) => {
   const shortlink = request.params.shortlink
   const url = await urlShortener.getOriginalUrl(client, shortlink)
   if (url === null) {
     throw new RecoverableError(
-      `Could not find URL for shortlink /${shortlink}`)
+      `Could not find URL for shortlink /s/${shortlink}`)
   } else if (request.isCurl) {
     response.send(url)
   } else {
@@ -156,12 +158,7 @@ app.use((error, request, response, next) => {
   logError(request)
   logError(error)
   if (request.isCurl) {
-    if (error instanceof RecoverableError) {
-      response.status(401).send(formatter.formatError(error))
-    } else {
-      response.status(500).send(
-        'An error occurred on our end. Please try again later.\n'.red)
-    }
+    response.send(formatter.formatError(error))
   } else {
     response.redirect(GITHUB_URL)
   }

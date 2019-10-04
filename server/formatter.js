@@ -10,7 +10,10 @@ const colors = require('colors')
 const moment = require('moment-timezone')
 const Table = require('cli-table3')
 
+const errors = require('./errors')
 const parser = require('./parser')
+
+const RecoverableError = errors.RecoverableError
 
 /**
  * The default number of characters for formatting the table width.
@@ -73,7 +76,7 @@ const formatDate = date => {
  */
 const formatTable = (head, fn) => {
   const table = new Table({
-    head: [head],
+    head: head ? [head] : null,
     // Subtract 2 to account for table border
     colWidths: [DEFAULT_DISPLAY_WIDTH - 2]
   })
@@ -157,12 +160,23 @@ const formatHelp = () => {
 
 /**
  * Formats an error for display.
- * @param {RecoverableError} error The error to display to the user
+ * @param {Error} error The error to display to the user
  * @return {string}
  */
 const formatError = error => {
+  let message = ''
+  if (error instanceof RecoverableError) {
+    message = error.message
+  } else if (String(error.name).startsWith('NewsAPIError')) {
+    message = formatTextWrap(error.message)
+  } else {
+    message = 'An error occurred on our end. Please try again later.'
+  }
   return formatTable(null, table => {
-    table.push([error.message])
+    table.push([{
+      content: message,
+      hAlign: 'center'
+    }])
   })
 }
 

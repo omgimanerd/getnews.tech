@@ -58,12 +58,12 @@ const parseArgs = argString => {
     }
     const parts = chunk.split('=')
     if (parts.length !== 2) {
-      throw new RecoverableError(`Unable to parse "${chunk}".`)
+      throw new RecoverableError(`Unable to parse query "${argString}".`)
     }
     const arg = parts[0]
     const value = parts[1]
     if (arg === '' || value === '') {
-      throw new RecoverableError(`Unable to parse "${chunk}".`)
+      throw new RecoverableError(`Unable to parse query "${argString}".`)
     }
     if (!VALID_ARGS.includes(arg)) {
       throw new RecoverableError(`${arg} is not a valid argument to provide.`)

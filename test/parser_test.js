@@ -61,10 +61,13 @@ describe('parser.js', () => {
         query: 'trump',
         category: 'business'
       })
+      expect(fn('category=general')).to.deep.equal({
+        category: 'general'
+      })
     })
 
     it('should throw an error with unparseable input', () => {
-      const reMatch = /Unable to parse ".*"\./
+      const reMatch = /Unable to parse query ".*"\./
       expect(fnThrow(',,')).to.throw(RecoverableError, reMatch)
       expect(fnThrow('query,page=')).to.throw(RecoverableError, reMatch)
       expect(fnThrow('=val')).to.throw(RecoverableError, reMatch)
