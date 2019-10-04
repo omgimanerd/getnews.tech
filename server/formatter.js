@@ -36,6 +36,7 @@ const formatTextWrap = (text, maxLineLength) => {
    * table where the text runs edge to edge.
    */
   if (!maxLineLength) {
+    // eslint-disable-next-line no-param-reassign
     maxLineLength = DEFAULT_DISPLAY_WIDTH - 4
   }
   const words = String(text).trim().replace(/[\s]+/g, ' ').split(' ')
@@ -64,6 +65,12 @@ const formatDate = date => {
   return 'Publication date not available'
 }
 
+/**
+ * Internal helper function to format content into a table for display.
+ * @param {string} head The header string, if one is needed
+ * @param {Function} fn A callback to invoke on the table to add content
+ * @return {string}
+ */
 const formatTable = (head, fn) => {
   const table = new Table({
     head: [head],
@@ -79,7 +86,7 @@ const formatTable = (head, fn) => {
       'https://github.com/omgimanerd/getnews.tech'.underline.blue,
     hAlign: 'center'
   }])
-  return table.toString() + '\n'
+  return `${table.toString()}\n`
 }
 
 /**
@@ -110,6 +117,10 @@ const formatArticles = (articles, timezone) => {
   })
 }
 
+/**
+ * Formats a help prompt for output.
+ * @return {string}
+ */
 const formatHelp = () => {
   return formatTable('Help'.bold, table => {
     table.push([[
@@ -144,6 +155,11 @@ const formatHelp = () => {
   })
 }
 
+/**
+ * Formats an error for display.
+ * @param {RecoverableError} error The error to display to the user
+ * @return {string}
+ */
 const formatError = error => {
   return formatTable(null, table => {
     table.push([error.message])

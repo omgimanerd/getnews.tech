@@ -21,6 +21,8 @@ const VALID_COUNTRIES = [
 ]
 
 const VALID_CATEGORIES = [
+  'business', 'entertainment', 'general', 'health', 'science', 'sports',
+  'technology'
 ]
 
 /**
@@ -35,16 +37,10 @@ const parseSubdomain = subdomains => {
     return null
   }
   const country = subdomains[subdomains.length - 1]
-  if (VALID_COUNTRIES.includes(country)) {
-    return country
+  if (!VALID_COUNTRIES.includes(country)) {
+    throw new RecoverableError(`${country} is not a valid country to query.`)
   }
-  return null
-}
-
-const validateArgs = (arg, value) => {
-  if (!VALID_ARGS.includes(arg)) {
-    throw new RecoverableError(`"${arg}" is not a valid argument.`)
-  }
+  return country
 }
 
 /**
@@ -57,18 +53,28 @@ const parseArgs = argString => {
   const args = {}
   argString.split(',').forEach((chunk, index) => {
     if (index === 0 && !chunk.includes('=')) {
-      args.query = chunk.replace('+', ' ')
+      args.query = chunk.replace(/\+/g, ' ')
       return
     }
     const parts = chunk.split('=')
-    const arg = parts[0]
-    if (parts.length === 2) {
-      const value = parts[1]
-      validateArgs(arg, value)
-      args[arg] = value
-    } else {
-      throw new RecoverableError(`Unable to parse ${chunk}`)
+    if (parts.length !== 2) {
+      throw new RecoverableError(`Unable to parse "${chunk}".`)
     }
+    const arg = parts[0]
+    const value = parts[1]
+    if (arg === '' || value === '') {
+      throw new RecoverableError(`Unable to parse "${chunk}".`)
+    }
+    if (!VALID_ARGS.includes(arg)) {
+      throw new RecoverableError(`${arg} is not a valid argument to provide.`)
+    }
+    if (arg === 'category' && !VALID_CATEGORIES.includes(value)) {
+      throw new RecoverableError(`${value} is not a valid category to query.`)
+    }
+    if ((arg === 'page' || arg === 'pageSize') && isNaN(value)) {
+      throw new RecoverableError(`${value} is not a valid value for ${arg}.`)
+    }
+    args[arg] = value
   })
   return args
 }

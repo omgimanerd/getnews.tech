@@ -2,6 +2,7 @@
  * @fileoverview Test suite for formatter.js
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
+/* eslint-disable no-unused-expressions */
 
 const chai = require('chai')
 const moment = require('moment')
@@ -12,61 +13,48 @@ const formatter = require('../server/formatter')
 
 describe('formatter.js', () => {
   describe('formatTextWrap()', () => {
+    const fn = formatter.formatTextWrap
+
     it('should work with regular input', () => {
-      formatter.formatTextWrap('hi there is a dong', 10).should.equal(
-        'hi there\nis a dong')
-      formatter.formatTextWrap('hi there is a dong what the fuck', 10)
-        .should.equal('hi there\nis a dong\nwhat the\nfuck')
+      expect(fn('hi there is a pet', 10)).to.equal('hi there\nis a pet')
+      expect(fn('hi there is a pet what the fuck', 10)).to.equal(
+        'hi there\nis a pet\nwhat the\nfuck')
     })
 
     it('should work with empty input', () => {
-      formatter.formatTextWrap('', 10).should.equal('')
-      formatter.formatTextWrap(null, 10).should.equal('null')
-      formatter.formatTextWrap(' ', 10).should.equal('')
+      expect(fn('', 10)).to.equal('')
+      expect(fn(null, 10)).to.equal('null')
+      expect(fn(' ', 10)).to.equal('')
     })
 
     it('should work on inputs with multiple spaces and tabs', () => {
-      formatter.formatTextWrap('  what     the \t heck?  \t', 8)
-        .should.equal('what the\nheck?')
-      formatter.formatTextWrap('\t\t what   \t the heck \t ', 20)
-        .should.equal('what the heck')
-      formatter.formatTextWrap('fuck i hate unit tests   sooo    \t much', 12)
-        .should.equal('fuck i hate\nunit tests\nsooo much')
-    })
-  })
-
-  describe('formatHelp()', () => {
-    it('should run without breaking', () => {
-      // eslint-disable-next-line no-unused-expressions
-      formatter.formatHelp(true).should.be.ok
-      // eslint-disable-next-line no-unused-expressions
-      formatter.formatHelp(false).should.be.ok
+      expect(fn('  what     the \t heck?  \t', 8)).to.equal('what the\nheck?')
+      expect(fn('\t\t what   \t the heck \t ', 20)).to.equal('what the heck')
+      expect(fn('fuck i hate unit tests   sooo    \t much', 12)).to.equal(
+        'fuck i hate\nunit tests\nsooo much')
     })
   })
 
   describe('formatDate()', () => {
-    it('should properly format valid inputs', () => {
-      const d1 = moment(100)
-      const d2 = moment(19238739)
+    const fn = formatter.formatDate
 
-      formatter.formatDate(d1).should.equal(
-        'Published on Dec 31st, 1969 at 7:00pm')
-      formatter.formatDate(d2).should.equal(
+    it('should properly format valid inputs', () => {
+      expect(fn(moment(100))).to.equal('Published on Dec 31st, 1969 at 7:00pm')
+      expect(fn(moment(19238739))).to.equal(
         'Published on Jan 1st, 1970 at 12:20am')
     })
 
     it('should return the proper string on bad inputs', () => {
-      formatter.formatDate(null).should.equal(
-        'Publication date not available')
-      formatter.formatDate(moment(null)).should.equal(
-        'Publication date not available')
+      expect(fn(null)).to.equal('Publication date not available')
+      expect(fn(moment(null))).to.equal('Publication date not available')
     })
   })
 
   describe('formatArticles()', () => {
+    const fn = formatter.formatArticles
+
     it('should run without breaking', () => {
-      // eslint-disable-next-line no-unused-expressions
-      formatter.formatArticles([
+      const articles = [
         {
           source: {
             name: 'source1'
@@ -84,7 +72,8 @@ describe('formatter.js', () => {
           description: 'description2',
           url: 'url2'
         }
-      ], null).should.be.ok
+      ]
+      expect(fn(articles, null)).to.exist
     })
   })
 })
