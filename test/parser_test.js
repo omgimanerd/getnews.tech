@@ -50,13 +50,13 @@ describe('parser.js', () => {
       expect(fn('page=2')).to.deep.equal({
         page: '2'
       })
-      expect(fn('pageSize=15')).to.deep.equal({
-        pageSize: '15'
+      expect(fn('n=15')).to.deep.equal({
+        n: '15'
       })
-      expect(fn('query+query2,page=2,pageSize=5')).to.deep.equal({
+      expect(fn('query+query2,page=2,n=5')).to.deep.equal({
         query: 'query query2',
         page: '2',
-        pageSize: '5'
+        n: '5'
       })
       expect(fn('trump,category=business')).to.deep.equal({
         query: 'trump',
@@ -80,12 +80,12 @@ describe('parser.js', () => {
     it('should throw an error with invalid parseable input', () => {
       const reInvalidArg = /.* is not a valid argument to provide\./
       const reInvalidCategory = /.* is not a valid category to query\./
-      const reInvalidNaN = /.* is not a valid value for (page|pageSize)\./
+      const reInvalidNaN = /.* is not a valid value for (page|n)\./
       expect(fnThrow('query,yonk=2j')).to.throw(RecoverableError, reInvalidArg)
       expect(fnThrow('query,bok=yodl')).to.throw(RecoverableError, reInvalidArg)
       expect(fnThrow('q,category=genrl')).to.throw(
         RecoverableError, reInvalidCategory)
-      expect(fnThrow('q,pageSize=e2')).to.throw(RecoverableError, reInvalidNaN)
+      expect(fnThrow('q,n=e2')).to.throw(RecoverableError, reInvalidNaN)
       expect(fnThrow('q,page=2j')).to.throw(RecoverableError, reInvalidNaN)
     })
   })

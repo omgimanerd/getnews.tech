@@ -20,13 +20,12 @@ const path = require('path')
 
 const NewsApi = require('newsapi')
 
-const analyticsFile = path.join(__dirname, 'logs/analytics.log')
 const errorFile = path.join(__dirname, 'logs/error.log')
 
 const errors = require('./server/errors')
 const formatter = require('./server/formatter')
 const parser = require('./server/parser')
-const loggers = require('./server/loggers')({ analyticsFile, errorFile })
+const loggers = require('./server/loggers')({ errorFile })
 const logError = loggers.logError
 const urlShortener = require('./server/urlShortener')
 
@@ -40,16 +39,10 @@ const app = express()
 app.set('port', PORT)
 app.set('view engine', 'pug')
 
-app.use('/dist', express.static(path.join(__dirname, '/dist')))
 app.use('/robots.txt', express.static(path.join(__dirname, '/robots.txt')))
-app.use('/favicon.ico', express.static(path.join(__dirname,
-  '/client/favicon.ico')))
 
 // Log general server information to the console.
 app.use(loggers.devLoggerMiddleware)
-
-// Write more specific log information to the server log file
-app.use(loggers.analyticsLoggerMiddleware)
 
 app.use(asyncHandler(async(request, response, next) => {
   request.isCurl = (request.headers['user-agent'] || '').includes('curl')
@@ -59,45 +52,24 @@ app.use(asyncHandler(async(request, response, next) => {
     // eslint-disable-next-line require-atomic-updates
     request.timezone = locationData.time_zone
   } catch (error) {
-  // eslint-disable-next-line require-atomic-updates
+    // eslint-disable-next-line require-atomic-updates
     request.timezone = moment.tz.guess()
   }
   next()
 }))
 
 /**
- * Helper function to shorten the URLs in the articles returned from the
- * News API.
- * @param {Array<Object>} articles The articles with URLs to shorten
- * @return {Array<Object>}
- */
-const shortenArticleUrls = async articles => {
-  const sorted = articles.sort((a, b) => {
-    return moment(a.publishedAt).diff(moment(b.publishedAt))
-  })
-  const shortenedUrls = await Promise.all(sorted.map(article => {
-    return urlShortener.getShortenedUrl(client, article.url)
-  }))
-  return articles.map((article, i) => {
-    article.url = shortenedUrls[i]
-    return article
-  })
-}
-
-/**
  * Given the API arguments to the News API, this helper function fetches
- * top headlines corresponding to those arguments and runs the URL shortener
- * and article formatter on them, returning the output table.
+ * most relevant articles and returns them after shortening their URLs.
  * @param {string} country The country to query results for
  * @param {string} category The news category to query results for
  * @param {string} q The query string to search for results with
  * @param {number} pageSize The number of entries to show per page
  * @param {number} page The results page to return
- * @param {string} timezone The timezone to format the results with
- * @return {string}
+ * @return {Array<Object>}
  */
-const getArticles = async(country, category, q, pageSize, page, timezone) => {
-  const result = await api.v2.topHeadlines({
+const getArticles = async(country, category, q, pageSize, page) => {
+  const result = await api.v2.everything({
     country: country ? country : '',
     category: category ? category : '',
     q: q ? q : '',
@@ -107,8 +79,17 @@ const getArticles = async(country, category, q, pageSize, page, timezone) => {
   if (!result.articles) {
     return []
   }
-  const articles = await shortenArticleUrls(result.articles)
-  return formatter.formatArticles(articles, timezone)
+  const sorted = result.articles.sort((a, b) => {
+    return moment(a.publishedAt).diff(moment(b.publishedAt));
+  })
+  // chained promises?
+  const shortenedUrls = await Promise.all(sorted.map(article => {
+    return urlShortener.getShortenedUrl(client, article.url)
+  }))
+  return sorted.map((article, i) => {
+    article.url = shortenedUrls[i]
+    return article
+  })
 }
 
 app.get('/', asyncHandler(async(request, response, next) => {
@@ -116,9 +97,9 @@ app.get('/', asyncHandler(async(request, response, next) => {
     next()
     return
   }
-  const output = await getArticles(
-    request.country, 'general', null, null, null, request.timezone)
-  response.send(output)
+  const articles = await getArticles(
+    request.country, 'general', null, null, null)
+  response.send(formatter.formatArticles(output, request.timezone))
 }))
 
 app.get('/:query', asyncHandler(async(request, response, next) => {
@@ -135,9 +116,8 @@ app.get('/:query', asyncHandler(async(request, response, next) => {
     throw new RecoverableError(args.error)
   }
   const output = await getArticles(
-    request.country, args.category, args.query, args.pageSize, args.page,
-    request.timezone)
-  response.send(output)
+    request.country, args.category, args.query, args.n, args.page)
+  response.send(formatter.formatArticles(output, request.timezone))
 }))
 
 app.get('/s/:shortlink', asyncHandler(async(request, response) => {

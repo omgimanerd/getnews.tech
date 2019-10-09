@@ -9,7 +9,11 @@ const errors = require('./errors')
 const RecoverableError = errors.RecoverableError
 
 const VALID_ARGS = [
-  'page', 'pageSize', 'category'
+  'n', 'page', 'category'
+]
+
+const NUMERIC_ARGS = [
+  'n', 'page'
 ]
 
 const VALID_COUNTRIES = [
@@ -73,7 +77,7 @@ const parseArgs = argString => {
     if (arg === 'category' && !VALID_CATEGORIES.includes(value)) {
       throw new RecoverableError(`${value} is not a valid category to query.`)
     }
-    if ((arg === 'page' || arg === 'pageSize') && isNaN(value)) {
+    if (NUMERIC_ARGS.includes(arg) && isNaN(value)) {
       throw new RecoverableError(`${value} is not a valid value for ${arg}.`)
     }
     args[arg] = value

@@ -57,12 +57,17 @@ const formatTextWrap = (text, maxLineLength) => {
 /**
  * Formats a moment object into a string. Helper method for formatArticles().
  * @param {Object} date The moment object to format.
+ * @param {string} timezone The timezone to format the date in
  * @return {string}
  */
-const formatDate = date => {
-  if (date && date.isValid()) {
-    const day = date.format('MMM Do, YYYY')
-    const time = date.format('h:mma z')
+const formatDate = (date, timezone) => {
+  let m = moment(date)
+  if (timezone) {
+    m = m.tz(timezone)
+  }
+  if (m.isValid()) {
+    const day = m.format('MMM Do, YYYY')
+    const time = m.format('h:mma z')
     return `Published on ${day} at ${time}`.trim()
   }
   return 'Publication date not available'
@@ -108,7 +113,7 @@ const formatArticles = (articles, timezone) => {
     articles.forEach(article => {
       const title = formatTextWrap(
         `${article.source.name} - ${article.title}`).bold.cyan
-      const date = formatDate(moment(article.publishedAt).tz(timezone)).cyan
+      const date = formatDate(article.publishedAt, timezone).cyan
       const description = formatTextWrap(
         article.description || 'No description available.')
       const url = String(article.url).underline.green
@@ -129,12 +134,12 @@ const formatHelp = () => {
     table.push([[
       '',
       // Query syntax
-      `Usage: curl ${'[country]'.blue}.getnews.tech/` +
+      `Usage: curl ${'[country]'.cyan}.getnews.tech/` +
         `${'[query,]'.green}${'arg'.yellow}=value,${'arg'.yellow}=value`,
       '\n',
       // Valid countries
       formatTextWrap(
-        `Valid countries: ${parser.VALID_COUNTRIES.join(', ').blue}`),
+        `Valid countries: ${parser.VALID_COUNTRIES.join(', ').cyan}`),
       '\n',
       // Valid arguments
       'Valid arguments:',
@@ -149,7 +154,7 @@ const formatHelp = () => {
       // Example queries
       'Example queries:',
       '    curl getnews.tech/trump',
-      '    curl getnews.tech/mass+shooting,pageSize=20',
+      '    curl getnews.tech/mass+shooting,n=20',
       '    curl at.getnews.tech/category=business',
       '    curl us.getnews.tech/category=general,page=2',
       '',

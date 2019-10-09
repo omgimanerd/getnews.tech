@@ -7,13 +7,6 @@ const expressWinston = require('express-winston')
 const winston = require('winston')
 const util = require('util')
 
-// eslint-disable-next-line no-unused-vars, require-jsdoc
-const dynamicMetaFunction = (request, response) => {
-  return {
-    ip: request.headers['x-forwarded-for'] || request.ip
-  }
-}
-
 module.exports = options => {
   const analyticsFile = options.analyticsFile
   const errorFile = options.errorFile
@@ -32,25 +25,15 @@ module.exports = options => {
   })
 
   return {
-    analyticsLoggerMiddleware: expressWinston.logger({
-      transports: [
-        new winston.transports.File({
-          json: true,
-          filename: analyticsFile,
-          showLevel: false,
-          timestamp: true
-        })
-      ],
-      skip: (request, response) => response.statusCode !== 200,
-      dynamicMeta: dynamicMetaFunction
-    }),
     devLoggerMiddleware: expressWinston.logger({
       transports: [
         new winston.transports.Console({ showLevel: false, timestamp: true })
       ],
       expressFormat: true,
       colorize: true,
-      dynamicMeta: dynamicMetaFunction
+      dynamicMeta: (request, response) => {
+        ip: request.headers['x-forwarded-for'] || request.ip
+      }
     }),
     logError: data => {
       const unpacked = util.inspect(data)
