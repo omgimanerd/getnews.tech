@@ -5,7 +5,6 @@
  * @author alvin.lin.dev@gmail.com (Alvin Lin)
  */
 
-// eslint-disable-next-line no-unused-vars
 const colors = require('colors')
 const moment = require('moment-timezone')
 const Table = require('cli-table3')
@@ -79,7 +78,10 @@ const formatDate = (date, timezone) => {
  * @param {Function} fn A callback to invoke on the table to add content
  * @return {string}
  */
-const formatTable = (head, fn) => {
+const formatTable = (head, fn, nocolor) => {
+  if (nocolor) {
+    colors.disable()
+  }
   const table = new Table({
     head: head ? [head] : null,
     // Subtract 2 to account for table border
@@ -94,6 +96,9 @@ const formatTable = (head, fn) => {
       'https://github.com/omgimanerd/getnews.tech'.underline.blue,
     hAlign: 'center'
   }])
+  if (nocolor) {
+    colors.enable()
+  }
   return `${table.toString()}\n`
 }
 
@@ -108,8 +113,8 @@ const formatTable = (head, fn) => {
  * @param {string} timezone The timezone of the requesting IP address
  * @return {string}
  */
-const formatArticles = (articles, timezone) => {
-  return formatTable('Articles'.bold, table => {
+const formatArticles = (articles, timezone, nocolor) => {
+  return formatTable('Articles'.bold, nocolor, table => {
     articles.forEach(article => {
       const title = formatTextWrap(
         `${article.source.name} - ${article.title}`).bold.cyan
@@ -130,6 +135,11 @@ const formatArticles = (articles, timezone) => {
  * @return {string}
  */
 const formatHelp = () => {
+  const validArguments = []
+  const validArgs = parser.VALID_ARGS
+  Object.keys(validArgs).forEach(key => {
+    validArguments.push(`    ${key.yellow}: ${validArgs[key].description}`)
+  })
   return formatTable('Help'.bold, table => {
     table.push([[
       '',
@@ -143,9 +153,7 @@ const formatHelp = () => {
       '\n',
       // Valid arguments
       'Valid arguments:',
-      `    ${'n'.yellow}: number of results per page`,
-      `    ${'page'.yellow}: page number to fetch`,
-      `    ${'category'.yellow}: news category to fetch`,
+      ...validArguments,
       '\n',
       // Valid categories to query
       formatTextWrap(
@@ -155,8 +163,8 @@ const formatHelp = () => {
       'Example queries:',
       '    curl getnews.tech/trump',
       '    curl getnews.tech/mass+shooting,n=20',
-      '    curl at.getnews.tech/category=business',
-      '    curl us.getnews.tech/category=general,page=2',
+      '    curl at.getnews.tech/category=business,nocolor',
+      '    curl us.getnews.tech/category=general,page=2,reverse',
       '',
       '    firefox getnews.tech/s/t8wAWZW0',
       ''

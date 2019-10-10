@@ -8,14 +8,6 @@ const errors = require('./errors')
 
 const RecoverableError = errors.RecoverableError
 
-const VALID_ARGS = [
-  'n', 'page', 'category'
-]
-
-const NUMERIC_ARGS = [
-  'n', 'page'
-]
-
 const VALID_COUNTRIES = [
   'ae', 'ar', 'at', 'au', 'be', 'bg', 'br', 'ca', 'ch', 'cn', 'co', 'cu', 'cz',
   'de', 'eg', 'fr', 'gb', 'gr', 'hk', 'hu', 'id', 'ie', 'il', 'in', 'it', 'jp',
@@ -28,6 +20,67 @@ const VALID_CATEGORIES = [
   'business', 'entertainment', 'general', 'health', 'science', 'sports',
   'technology'
 ]
+
+const VALID_LANGUAGES = [
+]
+
+const VALID_ARGS = {
+  'n': {
+    description: 'number of results per page',
+    parser: (arg, value) => {
+      if (isNaN(value) || value === '') {
+        throw new RecoverableError(
+          `${value} is not a valid value for arg ${arg}.`)
+      }
+      const numeric = parseInt(value, 10)
+      if (numeric <= 0 || numeric >= 100) {
+        throw new RecoverableError(
+          `Value for arg ${arg} must be in range (0, 100).`)
+      }
+      return numeric
+    }
+  },
+  'p': {
+    description: 'page number to fetch',
+    parser: (arg, value) => {
+      if (isNaN(value) || value === '') {
+        throw new RecoverableError(
+          `"${value}" is not a valid value for arg ${arg}.`)
+      }
+      const numeric = parseInt(value, 10)
+      if (numeric <= 0) {
+        throw new RecoverableError(`Value for arg ${arg} must be > 0.`)
+      }
+      return numeric
+    }
+  },
+  'category': {
+    description: 'news category to fetch',
+    parser: (arg, value) => {
+      if (VALID_CATEGORIES.includes(value)) {
+        return value
+      }
+      throw new RecoverableError(`"${value}" is not a valid ${arg}.`)
+    }
+  },
+  'language': {
+    description: 'language to limit results to',
+    parser: (arg, value) => {
+      if (VALID_LANGUAGES.includes(value)) {
+        return value
+      }
+      throw new RecoverableError(`"${value}" is not a valid ${arg}.`)
+    }
+  },
+  'reverse': {
+    description: 'display results in reverse chronological order',
+    parser: (arg, value) => value !== 'false'
+  },
+  'nocolor': {
+    description: 'display without color formatting',
+    parser: (arg, value) => value !== 'false'
+  }
+}
 
 /**
  * Given an array of subdomains from the express request context, this method
@@ -63,24 +116,21 @@ const parseArgs = argString => {
       return
     }
     const parts = chunk.split('=')
-    if (parts.length !== 2) {
-      throw new RecoverableError(`Unable to parse query "${argString}".`)
-    }
     const arg = parts[0]
-    const value = parts[1]
-    if (arg === '' || value === '') {
-      throw new RecoverableError(`Unable to parse query "${argString}".`)
+    const argValid = VALID_ARGS[arg]
+    if (argValid) {
+      if (parts.length === 1) {
+        args[arg] = argValid.parser(arg)
+        return
+      } else if (parts.length === 2) {
+        args[arg] = argValid.parser(arg, parts[1])
+        return
+      }
     }
-    if (!VALID_ARGS.includes(arg)) {
-      throw new RecoverableError(`${arg} is not a valid argument to provide.`)
+    if (arg !== '') {
+      throw new RecoverableError(`Invalid arguments "${chunk}".`)
     }
-    if (arg === 'category' && !VALID_CATEGORIES.includes(value)) {
-      throw new RecoverableError(`${value} is not a valid category to query.`)
-    }
-    if (NUMERIC_ARGS.includes(arg) && isNaN(value)) {
-      throw new RecoverableError(`${value} is not a valid value for ${arg}.`)
-    }
-    args[arg] = value
+    throw new RecoverableError(`Unable to parse "${chunk}".`)
   })
   return args
 }
@@ -88,6 +138,8 @@ const parseArgs = argString => {
 module.exports = exports = {
   VALID_COUNTRIES,
   VALID_CATEGORIES,
+  VALID_LANGUAGES,
+  VALID_ARGS,
   parseSubdomain,
   parseArgs
 }

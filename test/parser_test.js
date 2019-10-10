@@ -48,15 +48,15 @@ describe('parser.js', () => {
         query: 'multi word query'
       })
       expect(fn('page=2')).to.deep.equal({
-        page: '2'
+        page: 2
       })
       expect(fn('n=15')).to.deep.equal({
-        n: '15'
+        n: 15
       })
       expect(fn('query+query2,page=2,n=5')).to.deep.equal({
         query: 'query query2',
-        page: '2',
-        n: '5'
+        page: 2,
+        n: 5
       })
       expect(fn('trump,category=business')).to.deep.equal({
         query: 'trump',
@@ -68,19 +68,17 @@ describe('parser.js', () => {
     })
 
     it('should throw an error with unparseable input', () => {
-      const reMatch = /Unable to parse query ".*"\./
+      const reMatch = /Unable to parse ".*"\./
       expect(fnThrow(',,')).to.throw(RecoverableError, reMatch)
-      expect(fnThrow('query,page=')).to.throw(RecoverableError, reMatch)
-      expect(fnThrow('=val')).to.throw(RecoverableError, reMatch)
-      expect(fnThrow('page=2,query')).to.throw(RecoverableError, reMatch)
       expect(fnThrow('query,=,')).to.throw(RecoverableError, reMatch)
       expect(fnThrow('query,')).to.throw(RecoverableError, reMatch)
+      expect(fnThrow(',page=2,')).to.throw(RecoverableError, reMatch)
     })
 
     it('should throw an error with invalid parseable input', () => {
-      const reInvalidArg = /.* is not a valid argument to provide\./
-      const reInvalidCategory = /.* is not a valid category to query\./
-      const reInvalidNaN = /.* is not a valid value for (page|n)\./
+      const reInvalidArg = /Invalid arguments ".*"\./
+      const reInvalidCategory = /.* is not a valid category\./
+      const reInvalidNaN = /.* is not a valid value for arg (page|n)\./
       expect(fnThrow('query,yonk=2j')).to.throw(RecoverableError, reInvalidArg)
       expect(fnThrow('query,bok=yodl')).to.throw(RecoverableError, reInvalidArg)
       expect(fnThrow('q,category=genrl')).to.throw(

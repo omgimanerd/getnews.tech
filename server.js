@@ -116,8 +116,8 @@ app.get('/:query', asyncHandler(async(request, response, next) => {
     throw new RecoverableError(args.error)
   }
   const output = await getArticles(
-    request.country, args.category, args.query, args.n, args.page)
-  response.send(formatter.formatArticles(output, request.timezone))
+    request.country, args.category, args.query, args.n, args.p)
+  response.send(formatter.formatArticles(output, request.timezone, args.nocolor))
 }))
 
 app.get('/s/:shortlink', asyncHandler(async(request, response) => {
