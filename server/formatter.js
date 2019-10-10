@@ -75,10 +75,11 @@ const formatDate = (date, timezone) => {
 /**
  * Internal helper function to format content into a table for display.
  * @param {string} head The header string, if one is needed
+ * @param {boolean} nocolor Whether or not disable colors
  * @param {Function} fn A callback to invoke on the table to add content
  * @return {string}
  */
-const formatTable = (head, fn, nocolor) => {
+const formatTable = (head, nocolor, fn) => {
   if (nocolor) {
     colors.disable()
   }
@@ -111,11 +112,18 @@ const formatTable = (head, fn, nocolor) => {
  * @param {Array<Object>} articles A list of articles returned by a query to
  *   the News API.
  * @param {string} timezone The timezone of the requesting IP address
+ * @param {boolean} nocolor Whether or not to disable colors
+ * @param {boolean} reverse Format in reverse chronological order
  * @return {string}
  */
-const formatArticles = (articles, timezone, nocolor) => {
+const formatArticles = (articles, timezone, nocolor, reverse) => {
   return formatTable('Articles'.bold, nocolor, table => {
-    articles.forEach(article => {
+    articles.sort((a, b) => {
+      if (reverse) {
+        return moment(b.publishedAt).diff(moment(a.publishedAt))
+      }
+      return moment(a.publishedAt).diff(moment(b.publishedAt))
+    }).forEach(article => {
       const title = formatTextWrap(
         `${article.source.name} - ${article.title}`).bold.cyan
       const date = formatDate(article.publishedAt, timezone).cyan
@@ -140,7 +148,7 @@ const formatHelp = () => {
   Object.keys(validArgs).forEach(key => {
     validArguments.push(`    ${key.yellow}: ${validArgs[key].description}`)
   })
-  return formatTable('Help'.bold, table => {
+  return formatTable('Help'.bold, false, table => {
     table.push([[
       '',
       // Query syntax
@@ -187,7 +195,7 @@ const formatError = error => {
     message = 'An error occurred on our end. Please try again later.'
   }
   const help = 'curl getnews.tech/:help'
-  return formatTable(null, table => {
+  return formatTable(null, false, table => {
     table.push([{
       content: `\n${message}\n\n${help.red}\n`,
       hAlign: 'center'

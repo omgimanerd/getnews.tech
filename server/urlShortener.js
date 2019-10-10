@@ -40,20 +40,16 @@ const setup = async client => {
  * @return {Promise}
  */
 const getShortenedUrl = async(client, url) => {
-  try {
-    const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
-    const result = await collection.find({ url }).toArray()
-    let short = null
-    if (result.length === 0) {
-      short = nanoid(SHORT_LENGTH)
-      await collection.insertOne({ short, url })
-    } else {
-      short = result[0].short
-    }
-    return `http://getnews.tech/s/${short}`
-  } catch (error) {
-    throw error
+  const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
+  const result = await collection.find({ url }).toArray()
+  let short = null
+  if (result.length === 0) {
+    short = nanoid(SHORT_LENGTH)
+    await collection.insertOne({ short, url })
+  } else {
+    short = result[0].short
   }
+  return `http://getnews.tech/s/${short}`
 }
 
 /**
@@ -64,16 +60,12 @@ const getShortenedUrl = async(client, url) => {
  * @return {Promise}
  */
 const getOriginalUrl = async(client, short) => {
-  try {
-    const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
-    const result = await collection.find({ short }).toArray()
-    if (result.length === 1) {
-      return result[0].url
-    }
-    return null
-  } catch (error) {
-    throw error
+  const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
+  const result = await collection.find({ short }).toArray()
+  if (result.length === 1) {
+    return result[0].url
   }
+  return null
 }
 
 module.exports = { setup, getShortenedUrl, getOriginalUrl }

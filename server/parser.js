@@ -21,16 +21,13 @@ const VALID_CATEGORIES = [
   'technology'
 ]
 
-const VALID_LANGUAGES = [
-]
-
 const VALID_ARGS = {
-  'n': {
+  n: {
     description: 'number of results per page',
     parser: (arg, value) => {
       if (isNaN(value) || value === '') {
         throw new RecoverableError(
-          `${value} is not a valid value for arg ${arg}.`)
+          `"${value}" is not a valid value for arg ${arg}.`)
       }
       const numeric = parseInt(value, 10)
       if (numeric <= 0 || numeric >= 100) {
@@ -40,7 +37,7 @@ const VALID_ARGS = {
       return numeric
     }
   },
-  'p': {
+  p: {
     description: 'page number to fetch',
     parser: (arg, value) => {
       if (isNaN(value) || value === '') {
@@ -54,7 +51,7 @@ const VALID_ARGS = {
       return numeric
     }
   },
-  'category': {
+  category: {
     description: 'news category to fetch',
     parser: (arg, value) => {
       if (VALID_CATEGORIES.includes(value)) {
@@ -63,20 +60,11 @@ const VALID_ARGS = {
       throw new RecoverableError(`"${value}" is not a valid ${arg}.`)
     }
   },
-  'language': {
-    description: 'language to limit results to',
-    parser: (arg, value) => {
-      if (VALID_LANGUAGES.includes(value)) {
-        return value
-      }
-      throw new RecoverableError(`"${value}" is not a valid ${arg}.`)
-    }
-  },
-  'reverse': {
+  reverse: {
     description: 'display results in reverse chronological order',
     parser: (arg, value) => value !== 'false'
   },
-  'nocolor': {
+  nocolor: {
     description: 'display without color formatting',
     parser: (arg, value) => value !== 'false'
   }
@@ -130,7 +118,7 @@ const parseArgs = argString => {
     if (arg !== '') {
       throw new RecoverableError(`Invalid arguments "${chunk}".`)
     }
-    throw new RecoverableError(`Unable to parse "${chunk}".`)
+    throw new RecoverableError(`Unable to parse "${argString}".`)
   })
   return args
 }
@@ -138,7 +126,6 @@ const parseArgs = argString => {
 module.exports = exports = {
   VALID_COUNTRIES,
   VALID_CATEGORIES,
-  VALID_LANGUAGES,
   VALID_ARGS,
   parseSubdomain,
   parseArgs

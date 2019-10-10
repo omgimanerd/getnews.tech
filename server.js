@@ -69,7 +69,7 @@ app.use(asyncHandler(async(request, response, next) => {
  * @return {Array<Object>}
  */
 const getArticles = async(country, category, q, pageSize, page) => {
-  const result = await api.v2.everything({
+  const result = await api.v2.topHeadlines({
     country: country ? country : '',
     category: category ? category : '',
     q: q ? q : '',
@@ -79,17 +79,11 @@ const getArticles = async(country, category, q, pageSize, page) => {
   if (!result.articles) {
     return []
   }
-  const sorted = result.articles.sort((a, b) => {
-    return moment(a.publishedAt).diff(moment(b.publishedAt));
-  })
-  // chained promises?
-  const shortenedUrls = await Promise.all(sorted.map(article => {
-    return urlShortener.getShortenedUrl(client, article.url)
-  }))
-  return sorted.map((article, i) => {
-    article.url = shortenedUrls[i]
+  return Promise.all(result.articles.map(async article => {
+    // eslint-disable-next-line require-atomic-updates
+    article.url = await urlShortener.getShortenedUrl(client, article.url)
     return article
-  })
+  }))
 }
 
 app.get('/', asyncHandler(async(request, response, next) => {
@@ -99,7 +93,7 @@ app.get('/', asyncHandler(async(request, response, next) => {
   }
   const articles = await getArticles(
     request.country, 'general', null, null, null)
-  response.send(formatter.formatArticles(output, request.timezone))
+  response.send(formatter.formatArticles(articles, request.timezone))
 }))
 
 app.get('/:query', asyncHandler(async(request, response, next) => {
@@ -112,12 +106,10 @@ app.get('/:query', asyncHandler(async(request, response, next) => {
     response.send(formatter.formatHelp())
     return
   }
-  if (args.error) {
-    throw new RecoverableError(args.error)
-  }
-  const output = await getArticles(
+  const articles = await getArticles(
     request.country, args.category, args.query, args.n, args.p)
-  response.send(formatter.formatArticles(output, request.timezone, args.nocolor))
+  response.send(formatter.formatArticles(
+    articles, request.timezone, args.nocolor, args.reverse))
 }))
 
 app.get('/s/:shortlink', asyncHandler(async(request, response) => {
