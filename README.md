@@ -58,7 +58,11 @@ curl getnews.tech/:help
 ## Contributing
 Fork this repository and send me a pull request with any suggestions and
 changes. Use [ESLint](https://http://eslint.org/) to format your JavaScript
-using the provided `.eslintrc.js` file.
+using the provided `.eslintrc.js` file. I highly recommend using the provided
+precommit hook to run the unit tests and ESLint.
+```
+ln -s pre-commit.sh .git/hooks/pre-commit
+```
 
 You will need to acquire an API Key from the [News API](https://newsapi.org/).
 Add them to your .bashrc or other environment variable configuration:
