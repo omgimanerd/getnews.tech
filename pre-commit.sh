@@ -4,6 +4,7 @@ git stash save -q --keep-index $STASH_NAME
 
 # Test prospective changes
 mocha
+eslint server.js server test
 
 STASHES=$(git stash list)
 if [[ $STASHES == "$STASH_NAME" ]]; then
