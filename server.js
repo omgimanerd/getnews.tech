@@ -32,7 +32,10 @@ const urlShortener = require('./server/urlShortener')
 const RecoverableError = errors.RecoverableError
 
 // Server initialization
-const client = new mongodb.MongoClient(DB_URL)
+const client = new mongodb.MongoClient(DB_URL, {
+  reconnectTries: Number.MAX_VALUE,
+  reconnectInterval: 1000
+})
 const api = new NewsApi(NEWS_API_KEY)
 const app = express()
 
