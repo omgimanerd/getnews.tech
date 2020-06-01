@@ -1,71 +1,96 @@
 /**
- * @fileoverview This file contains methods which will access and maintain
- * the MongoDB database for URL shortening.
+ * @fileoverview This file contains methods which access and update the
+ * Redis database as a URL shortener.
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
 const nanoid = require('nanoid')
+const redis = require('redis')
 
-const SHORT_LENGTH = 8
+const Mutex = require('async-mutex').Mutex
+const Promise = require('bluebird')
 
-const DB_NAME = 'getnewstech'
-const COLLECTION_NAME = 'shortlinks'
+const SHORT_LENGTH = 16
+// One year expiration for all shortened URLs.
 const EXPIRATION_TIME = 60 * 60 * 24 * 365
 
 /**
- * Sets up the indexes on the collection on startup.
- * @param {MongoClient} client MongoDB client object
+ * The URLShortener class allows for URLs to be associated with a small
+ * unique ID and retrieved later using the same unique ID.
  */
-const setup = async client => {
-  const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
-  try {
-    await collection.createIndex(
-      { 'short': 1, url: 1 },
-      { unique: true, expireAfterSeconds: EXPIRATION_TIME })
-  } catch (error) {
-    if (error.code === 85 && error.codeName === 'IndexOptionsConflict') {
-      return
+class URLShortener {
+  /**
+   * Constructor for a URLShortener class.
+   * @param {string} prefix The prefix to prepend to all hashes.\
+   * @param {string} baseUrl The base URL of this project, either
+   *   dev.getnews.tech in dev mode or getnews.tech in production.
+   */
+  constructor(prefix, baseUrl) {
+    this.prefix = prefix
+    this.baseUrl = baseUrl
+
+    this.client = redis.createClient()
+    this.mutex = new Mutex()
+  }
+
+  /**
+   * Initializes the URLShortener class and checks for an error in the
+   * Redis client initialization.
+   * @param {?Function=} onError callback for any Redis errors.
+   */
+  setup(onError) {
+    if (onError) {
+      this.client.on('error', onError)
     }
-    throw error
+
+    this.redisGet = Promise.promisify(this.client.get, { context: this.client })
+    this.redisSet = Promise.promisify(this.client.set, { context: this.client })
+    this.redisExpire = Promise.promisify(this.client.expire,
+      { context: this.client })
+  }
+
+  /**
+   * Given a URL, this method checks if we already have a shortened form of a
+   * URL in our Redis store, returning the shortened form if we already have
+   * one. Otherwise, it generates a new short for the URL and stores the
+   * mapping and reverse mapping in Redis.
+   * @param {string} url The URL to shorten
+   * @return {Promise}
+   */
+  async getShortenedUrl(url) {
+    const release = await this.mutex.acquire()
+    try {
+      const existingShort = await this.redisGet(`${this.prefix}:url:${url}`)
+      if (existingShort !== null) {
+        return `${this.baseUrl}/s/${existingShort}`
+      }
+      let newShort = nanoid(SHORT_LENGTH)
+      let exists = await this.redisGet(`${this.prefix}:short:${newShort}`)
+      while (exists !== null) {
+        newShort = nanoid(SHORT_LENGTH)
+        exists = await this.redisGet(`${this.prefix}:short:${newShort}`)
+      }
+      const urlKey = `${this.prefix}:url:${url}`
+      const shortKey = `${this.prefix}:short:${newShort}`
+      await this.redisSet(urlKey, newShort)
+      await this.redisSet(shortKey, url)
+      await this.redisExpire(urlKey, EXPIRATION_TIME)
+      await this.redisExpire(shortKey, EXPIRATION_TIME)
+      return `${this.baseUrl}/s/${newShort}`
+    } finally {
+      release()
+    }
+  }
+
+  /**
+   * Given a shortened string, this methods returns the original URL mapped to
+   * the shortened string, or null if we do not have a corresponding URL.
+   * @param {string} short A shortened string to look up for a corresponding URL
+   * @return {Promise}
+   */
+  getOriginalUrl(short) {
+    return this.redisGet(`${this.prefix}:short:${short}`)
   }
 }
 
-/**
- * Given a URL, this method will return a shortened form of that URL.
- * Internally, this handles the generation of a shortened ID for the URL
- * and storing in into the MongoDB database. If a shortened URL already exists,
- * it will be returned.
- * @param {MongoClient} client MongoDB client object
- * @param {string} url The URL to shorten
- * @return {Promise}
- */
-const getShortenedUrl = async(client, url) => {
-  const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
-  const result = await collection.find({ url }).toArray()
-  let short = null
-  if (result.length === 0) {
-    short = nanoid(SHORT_LENGTH)
-    await collection.insertOne({ short, url })
-  } else {
-    short = result[0].short
-  }
-  return `http://getnews.tech/s/${short}`
-}
-
-/**
- * Given a shortlink ID, this method will look up the original URL in the
- * database and return it. If no shortlink exists, this method will return null.
- * @param {MongoClient} client MongoDB client object
- * @param {string} short The URL shortlink ID
- * @return {Promise}
- */
-const getOriginalUrl = async(client, short) => {
-  const collection = client.db(DB_NAME).collection(COLLECTION_NAME)
-  const result = await collection.find({ short }).toArray()
-  if (result.length === 1) {
-    return result[0].url
-  }
-  return null
-}
-
-module.exports = { setup, getShortenedUrl, getOriginalUrl }
+module.exports = exports = URLShortener

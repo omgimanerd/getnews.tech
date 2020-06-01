@@ -3,10 +3,15 @@
  * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
+require('dotenv').config()
+
 const PORT = process.env.PORT || 5000
 const NEWS_API_KEY = process.env.NEWS_API_KEY
-const DB_URL = 'mongodb://localhost:27017'
+const PROD = process.env.PROD === 'true'
 const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
+
+const REDIS_PREFIX = PROD ? 'prod' : 'dev'
+const URL_SHORTENER_BASE_URL = PROD ? 'getnews.tech' : 'dev.getnews.tech'
 
 // Dependencies.
 const asyncHandler = require('express-async-handler')
@@ -14,7 +19,6 @@ const asyncHandler = require('express-async-handler')
 const colors = require('colors')
 const express = require('express')
 const moment = require('moment-timezone')
-const mongodb = require('mongodb')
 const iplocate = require('node-iplocate')
 const path = require('path')
 
@@ -27,17 +31,14 @@ const formatter = require('./server/formatter')
 const parser = require('./server/parser')
 const loggers = require('./server/loggers')({ errorFile })
 const logError = loggers.logError
-const urlShortener = require('./server/urlShortener')
 
+const URLShortener = require('./server/urlShortener')
 const RecoverableError = errors.RecoverableError
 
 // Server initialization
-const client = new mongodb.MongoClient(DB_URL, {
-  reconnectTries: Number.MAX_VALUE,
-  reconnectInterval: 1000
-})
 const api = new NewsApi(NEWS_API_KEY)
 const app = express()
+const urlShortener = new URLShortener(REDIS_PREFIX, URL_SHORTENER_BASE_URL)
 
 app.set('port', PORT)
 app.set('view engine', 'pug')
@@ -84,7 +85,7 @@ const getArticles = async(country, category, q, pageSize, page) => {
   }
   return Promise.all(result.articles.map(async article => {
     // eslint-disable-next-line require-atomic-updates
-    article.url = await urlShortener.getShortenedUrl(client, article.url)
+    article.url = await urlShortener.getShortenedUrl(article.url)
     return article
   }))
 }
@@ -117,7 +118,7 @@ app.get('/:query', asyncHandler(async(request, response, next) => {
 
 app.get('/s/:shortlink', asyncHandler(async(request, response) => {
   const shortlink = request.params.shortlink
-  const url = await urlShortener.getOriginalUrl(client, shortlink)
+  const url = await urlShortener.getOriginalUrl(shortlink)
   if (url === null) {
     throw new RecoverableError(
       `Could not find URL for shortlink /s/${shortlink}`)
@@ -139,12 +140,12 @@ app.use((error, request, response, next) => {
   }
 })
 
-// Starts the server.
-client.connect(async error => {
-  if (error) { throw error }
-  await urlShortener.setup(client)
-  await app.listen(PORT)
+app.listen(PORT, () => {
   /* eslint-disable no-console */
   console.log(`STARTING SERVER ON PORT ${PORT}`)
+  if (!PROD) {
+    console.log('THIS SERVER IS RUNNING IN DEVELOPMENT MODE')
+  }
   /* eslint-enable no-console */
+  urlShortener.setup()
 })
