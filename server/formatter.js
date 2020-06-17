@@ -2,7 +2,7 @@
  * @fileoverview This file contains methods which will format the
  * data fetched from the News API into nice looking tables for
  * output in terminal.
- * @author alvin.lin.dev@gmail.com (Alvin Lin)
+ * @author alvin@omgimanerd.tech (Alvin Lin)
  */
 
 const colors = require('colors')
