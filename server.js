@@ -10,6 +10,11 @@ const NEWS_API_KEY = process.env.NEWS_API_KEY
 const PROD = process.env.PROD === 'true'
 const GITHUB_URL = 'https://github.com/omgimanerd/getnews.tech'
 
+if (NEWS_API_KEY === "") {
+  console.error('Unable to find News API key, no .env file available')
+  exit()
+}
+
 const REDIS_PREFIX = PROD ? 'prod' : 'dev'
 const URL_SHORTENER_BASE_URL = PROD ? 'getnews.tech' : 'dev.getnews.tech'
 
